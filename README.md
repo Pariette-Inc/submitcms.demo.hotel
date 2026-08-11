@@ -1,4 +1,4 @@
-# Villa Serin — Butik Otel (submitcms demo)
+# Pariette Hotel — Butik Otel (submitcms demo)
 
 Alaçatı'da on bir odalı bir butik otel için tasarlanmış tanıtım ve rezervasyon sitesi.
 Next.js 16 (App Router) + Tailwind v4 + TypeScript strict; içerik ve form kaydı

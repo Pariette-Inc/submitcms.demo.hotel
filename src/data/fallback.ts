@@ -10,7 +10,7 @@ const img = (id: string, w = 1600) =>
   `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
 
 export const fallbackSite: SiteInfo = {
-  name: "Villa Serin",
+  name: "Pariette Hotel",
   tagline: "Alaçatı'nın arka sokağında, on bir odalı küçük bir ev",
   intro: [
     "1912'de bir bağ evi olarak yapılan taş yapıyı, avlusundaki incir ağacına dokunmadan onardık. Bugün on bir oda, bir mutfak ve gün boyu gölge veren bir avlu var.",
@@ -18,7 +18,7 @@ export const fallbackSite: SiteInfo = {
   ],
   phone: "+90 232 716 00 11",
   whatsapp: "+90 555 716 00 11",
-  email: "merhaba@villaserin.example",
+  email: "merhaba@pariettehotel.example",
   address: "2010 Sokak No 7, Alaçatı",
   district: "Çeşme, İzmir",
   mapUrl: "https://maps.google.com/?q=Alacati+Cesme+Izmir",

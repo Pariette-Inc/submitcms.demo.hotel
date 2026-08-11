@@ -3,7 +3,7 @@
 > Her ekran/servis geliştirmesinden sonra güncellenir. En yeni bölüm en üstte.
 > Format: development-log skill'i (Claude) tarafından otomatik bakılır.
 
-## 2026-08-11 — Villa Serin butik otel sitesi (Next.js 16 + submitcms)
+## 2026-08-11 — Pariette Hotel butik otel sitesi (Next.js 16 + submitcms)
 
 | Ekran / Servis | Arayüz Adresi | API Endpoint(ler) | Not |
 |---|---|---|---|
