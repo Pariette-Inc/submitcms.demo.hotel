@@ -11,21 +11,31 @@ type ProbeResult = {
   status?: number;
   message?: string;
   keys?: string[];
+  /** 422 doğrulama hatalarında hangi alanların istendiği. */
+  errors?: Record<string, string[]>;
+  /** Yanıt gövdesinin `data` anahtarları (değer değil, yalnızca ad). */
+  dataKeys?: string[];
 };
 
 /** Tek bir SDK çağrısını çalıştırıp sonucu/hatayı özetler. Değer döndürmez. */
 async function probe(run: () => Promise<unknown>): Promise<ProbeResult> {
   try {
     const response = (await run()) as Record<string, unknown> | null;
+    const data = response?.data;
+
     return {
       ok: true,
       keys: response ? Object.keys(response) : [],
       message:
         typeof response?.message === "string" ? response.message : undefined,
+      dataKeys:
+        data && typeof data === "object" && !Array.isArray(data)
+          ? Object.keys(data as Record<string, unknown>)
+          : undefined,
     };
   } catch (err) {
     if (err instanceof SubmitError) {
-      return { ok: false, status: err.code, message: err.message };
+      return { ok: false, status: err.code, message: err.message, errors: err.errors };
     }
     return { ok: false, message: err instanceof Error ? err.message : String(err) };
   }
@@ -44,7 +54,10 @@ export async function GET(request: Request) {
   const probes =
     wantsProbe && sdk
       ? {
-          ticketForm: await probe(() => sdk.delivery.ticketForm()),
+          ticketFormBos: await probe(() => sdk.delivery.ticketForm()),
+          ticketFormIletisim: await probe(() =>
+            sdk.delivery.ticketForm({ ticket: "iletisim" }),
+          ),
           init: await probe(() => sdk.delivery.init()),
           manifest: await probe(() => sdk.delivery.manifest()),
           odaKayitlari: await probe(() =>
