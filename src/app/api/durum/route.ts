@@ -61,6 +61,40 @@ async function probe(run: () => Promise<unknown>): Promise<ProbeResult> {
  * Kurulum teşhisi. Değer/sır döndürmez: hangi değişken tanımlı, kaç karakter,
  * ve `?probe=1` verilirse canlı uçların dönüş kodu.
  */
+/**
+ * Sayfaların içeriği nereden geliyor: submitcms mi, demo verisi mi.
+ * Ekrandaki içerik demo şablonundan üretildiği için gözle ayırt edilemiyor.
+ */
+async function contentSources(sdk: NonNullable<ReturnType<typeof getCms>>) {
+  const types = ["oda", "hizmet"] as const;
+  const out: Record<string, unknown> = {};
+
+  for (const type of types) {
+    try {
+      const response = await sdk.delivery.records(type, { per_page: 100, locale: "tr" });
+      const records = response.data ?? [];
+      out[type] = {
+        kaynak: records.length ? "submitcms" : "demo (tip var ama yayımlanmış kayıt yok)",
+        adet: records.length,
+        slugler: records.slice(0, 8).map((record) => record.slug),
+        ilkKayitAlanlari: records[0] ? Object.keys(records[0].data ?? {}) : [],
+      };
+    } catch (err) {
+      out[type] = {
+        kaynak: "demo (fallback)",
+        hata:
+          err instanceof SubmitError
+            ? `${err.code} — ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : String(err),
+      };
+    }
+  }
+
+  return out;
+}
+
 /** Manifest, siteye özel entegrasyon rehberi — uç sözleşmelerini buradan okuyoruz. */
 async function manifestGuide(sdk: NonNullable<ReturnType<typeof getCms>>) {
   try {
@@ -89,9 +123,6 @@ export async function GET(request: Request) {
           manifest: await probe(() => sdk.delivery.manifest()),
           // Asıl uç: boş gövde gönderip 422'den zorunlu alanları öğreniyoruz.
           submitTicketBos: await probe(() => sdk.delivery.submitTicket({})),
-          odaKayitlari: await probe(() =>
-            sdk.delivery.records("oda", { per_page: 1 }),
-          ),
         }
       : undefined;
 
@@ -117,6 +148,7 @@ export async function GET(request: Request) {
           .sort(),
       },
       probes,
+      icerik: sdk ? await contentSources(sdk) : undefined,
       manifest: wantsProbe && sdk ? await manifestGuide(sdk) : undefined,
     },
   });
