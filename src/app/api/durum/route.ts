@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { SubmitError } from "submitcms";
-import { getTicketForm, isCmsConfigured } from "@/lib/cms";
+import { isCmsConfigured } from "@/lib/cms";
 import { getCms } from "@/lib/cms/client";
 
 export const runtime = "nodejs";
@@ -108,21 +108,14 @@ async function manifestGuide(sdk: NonNullable<ReturnType<typeof getCms>>) {
 
 export async function GET(request: Request) {
   const configured = isCmsConfigured();
-  const fields = configured ? await getTicketForm() : null;
   const wantsProbe = new URL(request.url).searchParams.get("probe") === "1";
 
   const sdk = getCms();
   const probes =
     wantsProbe && sdk
       ? {
-          ticketFormBos: await probe(() => sdk.delivery.ticketForm()),
-          ticketFormIletisim: await probe(() =>
-            sdk.delivery.ticketForm({ ticket: "iletisim" }),
-          ),
           init: await probe(() => sdk.delivery.init()),
           manifest: await probe(() => sdk.delivery.manifest()),
-          // Asıl uç: boş gövde gönderip 422'den zorunlu alanları öğreniyoruz.
-          submitTicketBos: await probe(() => sdk.delivery.submitTicket({})),
         }
       : undefined;
 
@@ -131,7 +124,6 @@ export async function GET(request: Request) {
       cmsConfigured: configured,
       formsPersist: configured,
       mode: process.env.SUBMITCMS_MODE === "test" ? "test" : "production",
-      ticketFormFields: fields ? fields.map((field) => field.code) : null,
       env: {
         SUBMITCMS_TOKEN: process.env.SUBMITCMS_TOKEN?.trim()
           ? `tanımlı (${process.env.SUBMITCMS_TOKEN.trim().length} karakter)`

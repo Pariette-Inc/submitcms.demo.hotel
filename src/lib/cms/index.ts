@@ -1,13 +1,12 @@
 import "server-only";
 import { cache } from "react";
+import type { TicketPayload } from "submitcms";
 import { CONTENT_TYPES, type Room, type Service, type SiteInfo } from "@/lib/content";
 import { fallbackRooms, fallbackServices, fallbackSite } from "@/data/fallback";
 import { getCms, isCmsConfigured, reportCmsError } from "./client";
 import { toRoom, toService, toSiteInfo } from "./mappers";
-import { normalizeTicketForm, type TicketField } from "./ticket";
 
 export { isCmsConfigured };
-export type { TicketField };
 
 const PER_PAGE = 50;
 
@@ -94,38 +93,6 @@ export const getSiteInfo = cache(async (): Promise<SiteInfo> => {
   }
 });
 
-const TICKET_FORM_TTL_MS = 10 * 60 * 1000;
-let ticketFormCache: { fields: TicketField[]; expiresAt: number } | null = null;
-
-/**
- * İletişim formunun panelde tanımlı alanları (`delivery.ticketForm` →
- * `POST /api/public/ticket-content`). Gönderim öncesi alan kodlarını eşlemek
- * için kullanılır; 10 dakika bellekte tutulur.
- *
- * submitcms yapılandırılmamışsa ya da şema alınamazsa `null` döner — bu durumda
- * varsayılan alan adları kullanılır.
- */
-export async function getTicketForm(): Promise<TicketField[] | null> {
-  const sdk = getCms();
-  if (!sdk) return null;
-
-  if (ticketFormCache && ticketFormCache.expiresAt > Date.now()) {
-    return ticketFormCache.fields;
-  }
-
-  try {
-    const response = await sdk.delivery.ticketForm();
-    const fields = normalizeTicketForm(response.data);
-    if (!fields.length) return null;
-
-    ticketFormCache = { fields, expiresAt: Date.now() + TICKET_FORM_TTL_MS };
-    return fields;
-  } catch (err) {
-    reportCmsError("iletişim formu şeması alınamadı", err);
-    return null;
-  }
-}
-
 /**
  * Ziyaretçi formlarını submitcms'e iletir (`delivery.submitTicket` →
  * `POST /api/public/ticket-submit`).
@@ -135,7 +102,7 @@ export async function getTicketForm(): Promise<TicketField[] | null> {
  * submitcms yapılandırılmamışsa `null` döner — demo modu.
  */
 export async function submitTicket(
-  payload: Record<string, unknown>,
+  payload: TicketPayload,
 ): Promise<boolean | null> {
   const sdk = getCms();
   if (!sdk) return null;

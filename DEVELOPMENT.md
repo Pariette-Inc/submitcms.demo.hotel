@@ -18,7 +18,7 @@
 | 404 | `/_not-found` | — | yeni |
 | Rezervasyon servisi | — | `POST /api/rezervasyon` | güncellendi · Zod + rate limit + `delivery.ticketForm()` ile alan eşleme + `delivery.submitTicket()` |
 | İletişim servisi | — | `POST /api/iletisim` | güncellendi · aynı hat; payload panel şemasındaki alan kodlarıyla gönderilir |
-| Kurulum teşhisi | — | `GET /api/durum` | yeni · token tanımlı mı, ticket şeması geliyor mu (sır dönmez) |
+| Kurulum teşhisi | — | `GET /api/durum[?probe=1]` | güncellendi · env durumu, canlı uç kodları, içeriğin submitcms'ten mi demo'dan mı geldiği |
 | SEO | `/sitemap.xml`, `/robots.txt` | — | yeni · oda ve hizmet slug'ları sitemap'e dahil |
 
 ### Notlar
@@ -30,10 +30,10 @@
   gelir. Formlar için demo modu yok: token yoksa uçlar `503 CMS_NOT_CONFIGURED` döner, istemci hata
   gösterir (önceden 201 + `stored:false` dönüp başarı ekranı açılıyordu — mesaj sessizce kayboluyordu).
   `submitTicket()` artık yalnızca `status === true` yanıtını başarı sayar; beklenmedik zarf da hata.
-- **Ticket eşleme:** `src/lib/cms/ticket.ts` — `normalizeTicketForm()` şema yanıtını alan listesine
-  indirger (dizi ya da nesne biçimi), `buildTicketPayload()` değerleri alan koduna/etiketine göre eşler.
-  Şemada olmayan değer mesaja iliştirilir; zorunlu ama eşleşmeyen alan SistemTakip'e `warn` düşer.
-  Şema 10 dakika bellekte tutulur (`getTicketForm`).
+- **Ticket gövdesi:** `src/lib/cms/ticket.ts` → `buildTicketPayload()`, `submitcms@1.0.1`'deki
+  `TicketPayload` tipini üretir: `type, subject, user, name, email, gdpr, advertising, drp` (+
+  `message`, `phone`). `ticketForm()` tabanlı şema katmanı kaldırıldı — o uç form şeması dönmüyor,
+  mevcut ticket'a mesaj ekliyor (SDK 1.0.1 dokümanı düzeltildi).
 - **İçe aktarma:** `scripts/submitcms-import.mjs <tip…> [--dry-run]` — `auth.console` ile oturum açar,
   `contentTypes.get/create` + `records.create/update` ile şablonları yazar, `delivery.records` ile
   doğrular. Idempotent (slug eşleşirse günceller). Alan tipi desteklenmiyorsa hiçbir şey yazmaz.

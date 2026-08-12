@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTicketForm, submitTicket } from "@/lib/cms";
+import { submitTicket } from "@/lib/cms";
 import { buildTicketPayload } from "@/lib/cms/ticket";
 import { contactSchema } from "@/lib/schemas";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
@@ -50,27 +50,17 @@ export async function POST(request: Request) {
 
   const data = parsed.data;
 
-  // Alan adları panelde tanımlı — şemayı çekip değerleri o kodlara eşliyoruz.
-  const fields = await getTicketForm();
-  const { payload, unmatchedRequired } = buildTicketPayload(
+  const payload = buildTicketPayload(
     {
       name: data.name,
       email: data.email,
       phone: data.phone || "",
       subject: data.subject,
       message: data.message,
+      consent: data.consent,
     },
-    fields,
     { tip: "iletisim" },
   );
-
-  if (unmatchedRequired.length) {
-    notifySafe(
-      "warn",
-      "İletişim formu şeması eşleşmedi",
-      `Panelde zorunlu ama formda karşılığı olmayan alanlar: ${unmatchedRequired.join(", ")}`,
-    );
-  }
 
   const result = await submitTicket(payload);
 

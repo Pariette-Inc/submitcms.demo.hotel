@@ -75,21 +75,22 @@ kayıt güncellenir. Son adımda `delivery.records()` ile okuyup doğrular.
 
 ### Ticket (form) akışı
 
-Alan adları panelde tanımlı olduğu ve SDK payload'ı olduğu gibi geçirdiği için,
-gönderim öncesi şema çekilip değerler o alan kodlarına eşleniyor
-(`src/lib/cms/ticket.ts`):
+Formlar `delivery.submitTicket()` ile gönderilir (`POST /api/public/ticket-submit`).
+Gövde `submitcms@1.0.1`'deki `TicketPayload` tipiyle sabittir; uç şu alanları zorunlu
+tutar ve eksik gönderimde 422 + `errors` döner:
 
-1. `delivery.ticketForm()` → alan listesi (10 dk bellekte tutulur).
-2. `buildTicketPayload()` → `ad soyad / e-posta / telefon / konu / mesaj` değerleri
-   şemadaki koda eşlenir. Eşleme önce alan koduna, sonra etikete bakar; yani
-   `full_name`, `adsoyad` ya da kodu `f_1` olup etiketi "Ad Soyad" olan alan aynı yere düşer.
-3. Şemada karşılığı olmayan bir değer (örn. panelde telefon alanı yoksa) uydurma
-   anahtarla gönderilmez — mesaj alanının sonuna iliştirilir, veri kaybolmaz.
-4. Panelde zorunlu olup formda karşılığı olmayan alan varsa SistemTakip'e `warn` düşer.
-5. Şema alınamazsa varsayılan anahtarlar kullanılır: `ad`, `eposta`, `telefon`, `konu`, `mesaj`.
+```
+type, subject, user, name, email, gdpr, advertising, drp   (+ message, phone)
+```
 
-Rezervasyon formu da aynı hattan geçer; tarih/kişi/oda detayları `veri` anahtarında,
-form tipi `tip` (`rezervasyon` | `iletisim`) alanında taşınır.
+Eşleme `src/lib/cms/ticket.ts` içinde: `gdpr` ve `drp` formdaki KVKK onayından gelir,
+`advertising` formda sorulmadığı için açıkça `false` gider, `user` verilmezse
+gönderenin e-postası kimlik olarak kullanılır. İkisi env ile değiştirilebilir:
+`SUBMITCMS_TICKET_TYPE` (varsayılan `iletisim`), `SUBMITCMS_TICKET_USER`.
+
+> `delivery.ticketForm()` bu akışta **kullanılmaz**. Adı form şeması dönecekmiş gibi
+> duruyor ama uç `NotificationController@setTicketContent` — mevcut bir ticket'a mesaj
+> ekler ve `ticket` + `message` ister. SDK 1.0.1 bunu doğru belgeliyor.
 
 ### Demo modu
 
@@ -115,6 +116,8 @@ curl -s https://<site>/api/durum
 | `SUBMITCMS_MEDIA_HOST` | Medya kendi alan adındaysa `next/image` için host |
 | `SISTEMTAKIP_API_KEY` | Olay bildirimi (`wh_in_…` incoming webhook anahtarı). Yoksa olaylar sunucu log'una yazılır. |
 | `NEXT_PUBLIC_SITE_URL` | Kanonik adres — metadata ve `sitemap.xml` |
+| `SUBMITCMS_TICKET_TYPE` | Talep türü kodu (varsayılan `iletisim`) |
+| `SUBMITCMS_TICKET_USER` | Ticket'ın `user` alanı; boşsa gönderenin e-postası |
 
 Hiçbiri `NEXT_PUBLIC_` ile başlamaz (site adresi dışında); token'lar sunucuda kalır.
 
