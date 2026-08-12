@@ -17,6 +17,22 @@ type ProbeResult = {
   dataKeys?: string[];
 };
 
+/** Gizli görünen anahtarları ayıklar — manifest gövdesini dışarı verirken. */
+function redact(value: unknown, depth = 0): unknown {
+  if (depth > 4) return "…";
+  if (Array.isArray(value)) return value.slice(0, 20).map((item) => redact(item, depth + 1));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) =>
+        /token|secret|password|api_key|apikey/i.test(key)
+          ? [key, "«gizlendi»"]
+          : [key, redact(item, depth + 1)],
+      ),
+    );
+  }
+  return value;
+}
+
 /** Tek bir SDK çağrısını çalıştırıp sonucu/hatayı özetler. Değer döndürmez. */
 async function probe(run: () => Promise<unknown>): Promise<ProbeResult> {
   try {
@@ -45,6 +61,17 @@ async function probe(run: () => Promise<unknown>): Promise<ProbeResult> {
  * Kurulum teşhisi. Değer/sır döndürmez: hangi değişken tanımlı, kaç karakter,
  * ve `?probe=1` verilirse canlı uçların dönüş kodu.
  */
+/** Manifest, siteye özel entegrasyon rehberi — uç sözleşmelerini buradan okuyoruz. */
+async function manifestGuide(sdk: NonNullable<ReturnType<typeof getCms>>) {
+  try {
+    const response = await sdk.delivery.manifest();
+    const data = (response.data ?? {}) as Record<string, unknown>;
+    return redact({ api: data.api, conventions: data.conventions });
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(request: Request) {
   const configured = isCmsConfigured();
   const fields = configured ? await getTicketForm() : null;
@@ -60,6 +87,8 @@ export async function GET(request: Request) {
           ),
           init: await probe(() => sdk.delivery.init()),
           manifest: await probe(() => sdk.delivery.manifest()),
+          // Asıl uç: boş gövde gönderip 422'den zorunlu alanları öğreniyoruz.
+          submitTicketBos: await probe(() => sdk.delivery.submitTicket({})),
           odaKayitlari: await probe(() =>
             sdk.delivery.records("oda", { per_page: 1 }),
           ),
@@ -88,6 +117,7 @@ export async function GET(request: Request) {
           .sort(),
       },
       probes,
+      manifest: wantsProbe && sdk ? await manifestGuide(sdk) : undefined,
     },
   });
 }
