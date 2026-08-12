@@ -115,6 +115,15 @@ export function ReservationForm({
         return;
       }
 
+      const body = (await response.json().catch(() => null)) as
+        | { data?: { stored?: boolean } }
+        | null;
+
+      if (body?.data?.stored === false) {
+        setErrors({ form: "Talebiniz kaydedilemedi. Lütfen telefonla ulaşın." });
+        return;
+      }
+
       router.push("/rezervasyon/basarili");
     } catch {
       setErrors({ form: "Bağlantı kurulamadı. Lütfen tekrar deneyin." });

@@ -18,6 +18,7 @@
 | 404 | `/_not-found` | — | yeni |
 | Rezervasyon servisi | — | `POST /api/rezervasyon` | güncellendi · Zod + rate limit + `delivery.ticketForm()` ile alan eşleme + `delivery.submitTicket()` |
 | İletişim servisi | — | `POST /api/iletisim` | güncellendi · aynı hat; payload panel şemasındaki alan kodlarıyla gönderilir |
+| Kurulum teşhisi | — | `GET /api/durum` | yeni · token tanımlı mı, ticket şeması geliyor mu (sır dönmez) |
 | SEO | `/sitemap.xml`, `/robots.txt` | — | yeni · oda ve hizmet slug'ları sitemap'e dahil |
 
 ### Notlar
@@ -25,8 +26,10 @@
 - **submitcms:** `src/lib/cms/` — `client.ts` SDK singleton'ı (site token'ı, yalnızca `delivery` modülü),
   `mappers.ts` kayıt → `Room`/`Service`/`SiteInfo` dönüşümü, `index.ts` `react.cache`'li erişim.
   İçerik tipleri: `oda`, `hizmet` (`src/lib/content.ts` → `CONTENT_TYPES`).
-- **Demo modu:** `SUBMITCMS_TOKEN` yoksa ya da servis hata verirse `src/data/fallback.ts` içeriği kullanılır;
-  hata SistemTakip'e `error` seviyesinde düşer. Rezervasyon/iletişim uçları bu modda `stored: false` döner.
+- **Demo modu:** `SUBMITCMS_TOKEN` yoksa ya da servis hata verirse **içerik** `src/data/fallback.ts`'ten
+  gelir. Formlar için demo modu yok: token yoksa uçlar `503 CMS_NOT_CONFIGURED` döner, istemci hata
+  gösterir (önceden 201 + `stored:false` dönüp başarı ekranı açılıyordu — mesaj sessizce kayboluyordu).
+  `submitTicket()` artık yalnızca `status === true` yanıtını başarı sayar; beklenmedik zarf da hata.
 - **Ticket eşleme:** `src/lib/cms/ticket.ts` — `normalizeTicketForm()` şema yanıtını alan listesine
   indirger (dizi ya da nesne biçimi), `buildTicketPayload()` değerleri alan koduna/etiketine göre eşler.
   Şemada olmayan değer mesaja iliştirilir; zorunlu ama eşleşmeyen alan SistemTakip'e `warn` düşer.

@@ -64,6 +64,15 @@ export function ContactForm() {
         return;
       }
 
+      const body = (await response.json().catch(() => null)) as
+        | { data?: { stored?: boolean } }
+        | null;
+
+      if (body?.data?.stored === false) {
+        setErrors({ form: "Mesajınız kaydedilemedi. Lütfen telefonla ulaşın." });
+        return;
+      }
+
       setValues(empty);
       setSent(true);
     } catch {

@@ -8,6 +8,13 @@ const baseUrl = process.env.SUBMITCMS_API_URL?.trim() || undefined;
 
 let sdk: SubmitCms | null = null;
 
+if (!token) {
+  console.warn(
+    "[submitcms] SUBMITCMS_TOKEN tanımlı değil — içerik demo verisinden geliyor, " +
+      "form gönderimleri hiçbir yere kaydedilmez.",
+  );
+}
+
 /** submitcms yapılandırılmış mı — değilse site demo içerikle çalışır. */
 export function isCmsConfigured(): boolean {
   return Boolean(token);

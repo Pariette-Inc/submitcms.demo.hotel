@@ -74,6 +74,18 @@ export async function POST(request: Request) {
 
   const result = await submitTicket(payload);
 
+  if (result === null) {
+    notifySafe(
+      "error",
+      "Form kaydedilemedi — submitcms yapılandırılmamış",
+      "SUBMITCMS_TOKEN tanımlı değil; gönderilen form hiçbir yere yazılmadı.",
+    );
+    return NextResponse.json(
+      { message: "Mesajınız şu anda iletilemedi. Lütfen telefonla ulaşın.", code: "CMS_NOT_CONFIGURED" },
+      { status: 503 },
+    );
+  }
+
   if (result === false) {
     return NextResponse.json(
       {

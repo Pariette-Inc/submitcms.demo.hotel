@@ -142,7 +142,23 @@ export async function submitTicket(
 
   try {
     const response = await sdk.delivery.submitTicket(payload);
-    return response.status !== false;
+
+    if (response?.status === true) return true;
+
+    if (response?.status === false) {
+      reportCmsError(
+        "form kaydı reddedildi",
+        new Error(response.message ?? "status: false"),
+      );
+      return false;
+    }
+
+    // Beklenmedik zarf: başarı sayıp sessizce kaybetmektense hata olarak işle.
+    reportCmsError(
+      "form kaydı için beklenmedik yanıt",
+      new Error(`anahtarlar: ${Object.keys(response ?? {}).join(", ") || "yok"}`),
+    );
+    return false;
   } catch (err) {
     reportCmsError("form kaydı iletilemedi", err);
     return false;

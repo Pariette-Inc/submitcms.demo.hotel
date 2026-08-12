@@ -26,6 +26,7 @@ npm run dev
 | `/iletisim` | Adres, ulaşım, iletişim formu |
 | `POST /api/rezervasyon` | Zod doğrulama + rate limit + submitcms kaydı |
 | `POST /api/iletisim` | Aynı hat, iletişim mesajı |
+| `GET /api/durum` | Kurulum teşhisi: token tanımlı mı, ticket şeması geliyor mu |
 
 ## submitcms bağlantısı
 
@@ -75,9 +76,17 @@ form tipi `tip` (`rezervasyon` | `iletisim`) alanında taşınır.
 
 ### Demo modu
 
-`SUBMITCMS_TOKEN` boşken ya da servis yanıt vermezken site `src/data/fallback.ts`
-içindeki demo içerikle çalışır; hata SistemTakip'e bildirilir. Böylece repo klonlanır
-klonlanmaz ayağa kalkar. Token tanımlandığında kod değişikliği gerekmez.
+`SUBMITCMS_TOKEN` boşken ya da servis yanıt vermezken **içerik** `src/data/fallback.ts`
+demo verisinden gelir; böylece repo klonlanır klonlanmaz ayağa kalkar.
+
+**Formlar bunun dışındadır.** Token yoksa gönderim hiçbir yere yazılamayacağı için uç
+`503 CMS_NOT_CONFIGURED` döner ve kullanıcıya hata gösterilir — "gitti" deyip mesajı
+sessizce düşürmez. Kurulumu `GET /api/durum` ile kontrol edebilirsin:
+
+```bash
+curl -s https://<site>/api/durum
+# {"data":{"cmsConfigured":true,"mode":"production","ticketFormFields":["ad","eposta",...],"formsPersist":true}}
+```
 
 ## Ortam değişkenleri
 
