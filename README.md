@@ -56,6 +56,23 @@ _(fiyat/para birimi `commerce.price` alanından da okunur)_
 [`submitcms/`](submitcms/) klasöründe: `content-types/` (tip tanımları),
 `records/` (6 oda + 6 hizmet). Ayrıntı için [submitcms/README.md](submitcms/README.md).
 
+### İçe aktarma
+
+Panelde tip ve kayıt açmak yazma tarafıdır, oturum ister. Tek komut:
+
+```bash
+node scripts/submitcms-import.mjs hizmet        # tip + 6 kayıt
+node scripts/submitcms-import.mjs hizmet oda    # ikisi birden
+node scripts/submitcms-import.mjs hizmet --dry-run
+```
+
+`.env.local` içinde `SUBMITCMS_TOKEN` yanında panel girişi de gerekir:
+`SUBMITCMS_CONSOLE_EMAIL`, `SUBMITCMS_CONSOLE_PASSWORD`. Script önce
+`schema.fieldTypes()` ile panelin tanıdığı alan tiplerini alır, şablondaki bir tip
+desteklenmiyorsa hiçbir şey yazmadan durur ve desteklenen listeyi yazdırır.
+Tekrar çalıştırmak güvenlidir: var olan tip yeniden kurulmaz, aynı slug'a sahip
+kayıt güncellenir. Son adımda `delivery.records()` ile okuyup doğrular.
+
 ### Ticket (form) akışı
 
 Alan adları panelde tanımlı olduğu ve SDK payload'ı olduğu gibi geçirdiği için,

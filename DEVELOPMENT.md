@@ -34,6 +34,9 @@
   indirger (dizi ya da nesne biçimi), `buildTicketPayload()` değerleri alan koduna/etiketine göre eşler.
   Şemada olmayan değer mesaja iliştirilir; zorunlu ama eşleşmeyen alan SistemTakip'e `warn` düşer.
   Şema 10 dakika bellekte tutulur (`getTicketForm`).
+- **İçe aktarma:** `scripts/submitcms-import.mjs <tip…> [--dry-run]` — `auth.console` ile oturum açar,
+  `contentTypes.get/create` + `records.create/update` ile şablonları yazar, `delivery.records` ile
+  doğrular. Idempotent (slug eşleşirse günceller). Alan tipi desteklenmiyorsa hiçbir şey yazmaz.
 - **Import şablonları:** `submitcms/content-types/{oda,hizmet}.json` (şema) ve
   `submitcms/records/{oda,hizmet}.json` (12 kayıt). Alan anahtarları `mappers.ts` ile
   eşleşecek şekilde seçildi; kayıtlar mapper'dan geçirilerek doğrulandı.
