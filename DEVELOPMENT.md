@@ -14,10 +14,10 @@
 | Hizmet detayı | `/hizmetler/{slug}` | submitcms `delivery.record('hizmet', slug)` | yeni · 6 hizmet, SSG |
 | Rezervasyon formu | `/rezervasyon` (`?oda=&giris=&cikis=&yetiskin=` ile ön dolu) | `POST /api/rezervasyon` | yeni · tarih/kişi/oda + iletişim, tahmini toplam |
 | Rezervasyon sonucu | `/rezervasyon/basarili` | — | yeni · `noindex`, PII query'de taşınmaz |
-| İletişim | `/iletisim` | `POST /api/iletisim` | yeni · adres, telefon, ulaşım + form |
+| İletişim | `/iletisim` | `POST /api/iletisim` | güncellendi · form submitcms ticket şemasına bağlandı |
 | 404 | `/_not-found` | — | yeni |
-| Rezervasyon servisi | — | `POST /api/rezervasyon` | yeni · Zod doğrulama + IP başına 5 istek/dk + submitcms `delivery.submitTicket` |
-| İletişim servisi | — | `POST /api/iletisim` | yeni · aynı doğrulama/rate limit hattı |
+| Rezervasyon servisi | — | `POST /api/rezervasyon` | güncellendi · Zod + rate limit + `delivery.ticketForm()` ile alan eşleme + `delivery.submitTicket()` |
+| İletişim servisi | — | `POST /api/iletisim` | güncellendi · aynı hat; payload panel şemasındaki alan kodlarıyla gönderilir |
 | SEO | `/sitemap.xml`, `/robots.txt` | — | yeni · oda ve hizmet slug'ları sitemap'e dahil |
 
 ### Notlar
@@ -27,6 +27,10 @@
   İçerik tipleri: `oda`, `hizmet` (`src/lib/content.ts` → `CONTENT_TYPES`).
 - **Demo modu:** `SUBMITCMS_TOKEN` yoksa ya da servis hata verirse `src/data/fallback.ts` içeriği kullanılır;
   hata SistemTakip'e `error` seviyesinde düşer. Rezervasyon/iletişim uçları bu modda `stored: false` döner.
+- **Ticket eşleme:** `src/lib/cms/ticket.ts` — `normalizeTicketForm()` şema yanıtını alan listesine
+  indirger (dizi ya da nesne biçimi), `buildTicketPayload()` değerleri alan koduna/etiketine göre eşler.
+  Şemada olmayan değer mesaja iliştirilir; zorunlu ama eşleşmeyen alan SistemTakip'e `warn` düşer.
+  Şema 10 dakika bellekte tutulur (`getTicketForm`).
 - **Bildirim:** `src/lib/sistemtakip.ts` → `notifySafe()`. Rezervasyon talebi `confirm`, rate limit `warn`,
   submitcms hatası `error`. `SISTEMTAKIP_API_KEY` yoksa olay sunucu log'una yazılır.
 - **Rate limit:** süreç içi `Map` (`src/lib/rate-limit.ts`). Çok instance'lı kurulumda Redis'e taşınacak.

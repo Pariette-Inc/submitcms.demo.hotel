@@ -37,7 +37,8 @@ SDK'nın `delivery` modülü kullanılır (`src/lib/cms/`).
 | Site bilgisi (ad, iletişim, giriş/çıkış saati) | `sdk.delivery.init()` |
 | Odalar | `sdk.delivery.records('oda')` / `sdk.delivery.record('oda', slug)` |
 | Hizmetler | `sdk.delivery.records('hizmet')` / `sdk.delivery.record('hizmet', slug)` |
-| Rezervasyon ve iletişim formu | `sdk.delivery.submitTicket(payload)` |
+| İletişim formu şeması | `sdk.delivery.ticketForm()` → `POST /api/public/ticket-content` |
+| Rezervasyon ve iletişim formu | `sdk.delivery.submitTicket(payload)` → `POST /api/public/ticket-submit` |
 
 ### İçerik tipleri
 
@@ -49,6 +50,24 @@ Panelde iki içerik tipi açılır. Alan kodları için birkaç yaygın karşıl
 _(fiyat/para birimi `commerce.price` alanından da okunur)_
 
 **`hizmet`** — `ad`, `ozet`, `aciklama`, `gorsel`, `saatler`, `konum`, `detaylar`, `one_cikan`
+
+### Ticket (form) akışı
+
+Alan adları panelde tanımlı olduğu ve SDK payload'ı olduğu gibi geçirdiği için,
+gönderim öncesi şema çekilip değerler o alan kodlarına eşleniyor
+(`src/lib/cms/ticket.ts`):
+
+1. `delivery.ticketForm()` → alan listesi (10 dk bellekte tutulur).
+2. `buildTicketPayload()` → `ad soyad / e-posta / telefon / konu / mesaj` değerleri
+   şemadaki koda eşlenir. Eşleme önce alan koduna, sonra etikete bakar; yani
+   `full_name`, `adsoyad` ya da kodu `f_1` olup etiketi "Ad Soyad" olan alan aynı yere düşer.
+3. Şemada karşılığı olmayan bir değer (örn. panelde telefon alanı yoksa) uydurma
+   anahtarla gönderilmez — mesaj alanının sonuna iliştirilir, veri kaybolmaz.
+4. Panelde zorunlu olup formda karşılığı olmayan alan varsa SistemTakip'e `warn` düşer.
+5. Şema alınamazsa varsayılan anahtarlar kullanılır: `ad`, `eposta`, `telefon`, `konu`, `mesaj`.
+
+Rezervasyon formu da aynı hattan geçer; tarih/kişi/oda detayları `veri` anahtarında,
+form tipi `tip` (`rezervasyon` | `iletisim`) alanında taşınır.
 
 ### Demo modu
 

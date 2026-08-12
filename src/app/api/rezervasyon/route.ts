@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { submitTicket } from "@/lib/cms";
+import { getTicketForm, submitTicket } from "@/lib/cms";
+import { buildTicketPayload } from "@/lib/cms/ticket";
 import { reservationSchema } from "@/lib/schemas";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { notifySafe } from "@/lib/sistemtakip";
@@ -51,22 +52,38 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const nights = nightsBetween(data.checkIn, data.checkOut);
 
-  const result = await submitTicket({
-    tip: "rezervasyon",
-    konu: `Rezervasyon talebi — ${data.name}`,
-    ad: data.name,
-    eposta: data.email,
-    telefon: data.phone,
-    mesaj: data.note || "",
-    veri: {
-      giris: data.checkIn,
-      cikis: data.checkOut,
-      gece: nights,
-      yetiskin: data.adults,
-      cocuk: data.children,
-      oda: data.room || "belirtilmedi",
+  const fields = await getTicketForm();
+  const { payload, unmatchedRequired } = buildTicketPayload(
+    {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      subject: `Rezervasyon talebi — ${data.name}`,
+      message: data.note || "",
     },
-  });
+    fields,
+    {
+      tip: "rezervasyon",
+      veri: {
+        giris: data.checkIn,
+        cikis: data.checkOut,
+        gece: nights,
+        yetiskin: data.adults,
+        cocuk: data.children,
+        oda: data.room || "belirtilmedi",
+      },
+    },
+  );
+
+  if (unmatchedRequired.length) {
+    notifySafe(
+      "warn",
+      "Rezervasyon formu şeması eşleşmedi",
+      `Panelde zorunlu ama formda karşılığı olmayan alanlar: ${unmatchedRequired.join(", ")}`,
+    );
+  }
+
+  const result = await submitTicket(payload);
 
   if (result === false) {
     return NextResponse.json(
