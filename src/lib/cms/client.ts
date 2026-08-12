@@ -2,7 +2,10 @@ import "server-only";
 import { SubmitCms, SubmitError } from "submitcms";
 import { notifySafe } from "@/lib/sistemtakip";
 
-const token = process.env.SUBMITCMS_TOKEN?.trim();
+// Birincil ad SUBMITCMS_TOKEN; submitcms'in kendi README örneği SUBMIT_TOKEN
+// kullandığı için o da kabul edilir.
+const token =
+  process.env.SUBMITCMS_TOKEN?.trim() || process.env.SUBMIT_TOKEN?.trim();
 const mode = process.env.SUBMITCMS_MODE === "test" ? "test" : "production";
 const baseUrl = process.env.SUBMITCMS_API_URL?.trim() || undefined;
 

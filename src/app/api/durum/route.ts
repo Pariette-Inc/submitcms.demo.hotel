@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
  * ya da "eski container ayakta" ayrımını yapmaya yetiyor.
  */
 export async function GET() {
-  const token = process.env.SUBMITCMS_TOKEN?.trim();
   const configured = isCmsConfigured();
   const fields = configured ? await getTicketForm() : null;
 
@@ -24,7 +23,12 @@ export async function GET() {
       ticketFormFields: fields ? fields.map((field) => field.code) : null,
       env: {
         // Beklenen adla tanımlı mı, kaç karakter?
-        SUBMITCMS_TOKEN: token ? `tanımlı (${token.length} karakter)` : "YOK",
+        SUBMITCMS_TOKEN: process.env.SUBMITCMS_TOKEN?.trim()
+          ? `tanımlı (${process.env.SUBMITCMS_TOKEN.trim().length} karakter)`
+          : "YOK",
+        SUBMIT_TOKEN: process.env.SUBMIT_TOKEN?.trim()
+          ? `tanımlı (${process.env.SUBMIT_TOKEN.trim().length} karakter) — yedek ad`
+          : "YOK",
         SUBMITCMS_MODE: process.env.SUBMITCMS_MODE ?? "YOK",
         SUBMITCMS_API_URL: process.env.SUBMITCMS_API_URL ? "tanımlı" : "YOK",
         NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ?? "YOK",

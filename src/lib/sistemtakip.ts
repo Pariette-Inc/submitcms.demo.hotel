@@ -35,7 +35,11 @@ export function notifySafe(
 
   st[level]({ title, message }).catch((err: unknown) => {
     if (err instanceof SistemTakipError) {
-      console.error(`SistemTakip [${err.statusCode}]: ${err.message}`);
+      const hint =
+        err.statusCode === 404
+          ? " — API anahtarı tanınmadı (SDK https://live.sistemtakip.com/api/sdk/log/<key> adresine gidiyor; anahtar wh_in_... biçiminde olmalı)"
+          : "";
+      console.error(`SistemTakip [${err.statusCode}]: ${err.message}${hint}`);
     } else {
       console.error("SistemTakip notify failed:", err);
     }

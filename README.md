@@ -92,11 +92,11 @@ curl -s https://<site>/api/durum
 
 | Değişken | Açıklama |
 |---|---|
-| `SUBMITCMS_TOKEN` | Site (delivery) token'ı. Boşsa demo içerik. |
+| `SUBMITCMS_TOKEN` | Site (delivery) token'ı. Boşsa demo içerik, formlar 503 döner. `SUBMIT_TOKEN` adı da okunur. |
 | `SUBMITCMS_MODE` | `production` (varsayılan) veya `test` |
 | `SUBMITCMS_API_URL` | Self-hosted/yerel API kökü — verilirse `MODE` yok sayılır |
 | `SUBMITCMS_MEDIA_HOST` | Medya kendi alan adındaysa `next/image` için host |
-| `SISTEMTAKIP_API_KEY` | Olay bildirimi. Yoksa olaylar sunucu log'una yazılır. |
+| `SISTEMTAKIP_API_KEY` | Olay bildirimi (`wh_in_…` incoming webhook anahtarı). Yoksa olaylar sunucu log'una yazılır. |
 | `NEXT_PUBLIC_SITE_URL` | Kanonik adres — metadata ve `sitemap.xml` |
 
 Hiçbiri `NEXT_PUBLIC_` ile başlamaz (site adresi dışında); token'lar sunucuda kalır.
