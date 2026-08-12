@@ -46,7 +46,13 @@ export function getCms(): SubmitCms | null {
 export function reportCmsError(context: string, err: unknown): void {
   const detail =
     err instanceof SubmitError
-      ? `${err.code} — ${err.message}`
+      ? [
+          `${err.code} — ${err.message}`,
+          // 422'de hangi alanın reddedildiği yalnızca burada görünür.
+          err.errors ? `alanlar: ${JSON.stringify(err.errors)}` : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")
       : err instanceof Error
         ? err.message
         : String(err);
