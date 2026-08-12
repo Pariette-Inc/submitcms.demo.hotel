@@ -51,5 +51,6 @@ export function reportCmsError(context: string, err: unknown): void {
         ? err.message
         : String(err);
 
+  console.error(`[submitcms] ${context}: ${detail}`);
   notifySafe("error", `submitcms: ${context}`, detail);
 }
