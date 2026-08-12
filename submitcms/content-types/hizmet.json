@@ -1,0 +1,67 @@
+{
+    "code": "hizmet",
+    "name": "Hizmet",
+    "kind": "content",
+    "description": "Otel hizmeti: özet, açıklama, saatler, konum ve detaylar",
+    "icon": "concierge-bell",
+    "options": {
+        "sluggable": true,
+        "slug_from": "ad",
+        "localized": true,
+        "publishable": true
+    },
+    "schema": {
+        "fields": [
+            {
+                "key": "ad",
+                "type": "text",
+                "label": "Hizmet adı",
+                "required": true,
+                "indexed": true
+            },
+            {
+                "key": "ozet",
+                "type": "textarea",
+                "label": "Özet",
+                "help": "Hizmet kartlarında ve ana sayfada görünür"
+            },
+            {
+                "key": "aciklama",
+                "type": "richtext",
+                "label": "Açıklama"
+            },
+            {
+                "key": "kapak",
+                "type": "media",
+                "label": "Kapak görseli"
+            },
+            {
+                "key": "saatler",
+                "type": "text",
+                "label": "Saatler",
+                "help": "Örn. 08.00 – 11.30 · Perşembe – Pazar",
+                "width": "half"
+            },
+            {
+                "key": "konum",
+                "type": "text",
+                "label": "Konum",
+                "help": "Örn. Avlu, incir ağacının altı",
+                "width": "half"
+            },
+            {
+                "key": "detaylar",
+                "type": "list",
+                "label": "Detaylar",
+                "help": "Her satır bir madde: Konaklamaya dahil, Vegan alternatif…"
+            },
+            {
+                "key": "one_cikan",
+                "type": "boolean",
+                "label": "Ana sayfada öne çıkar",
+                "indexed": true
+            }
+        ],
+        "groups": []
+    }
+}

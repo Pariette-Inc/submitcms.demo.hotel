@@ -1,0 +1,93 @@
+{
+    "code": "oda",
+    "name": "Oda",
+    "kind": "content",
+    "description": "Otel odası: özet, açıklama, gecelik fiyat, kapasite, görseller ve olanaklar",
+    "icon": "bed",
+    "options": {
+        "sluggable": true,
+        "slug_from": "ad",
+        "localized": true,
+        "publishable": true
+    },
+    "schema": {
+        "fields": [
+            {
+                "key": "ad",
+                "type": "text",
+                "label": "Oda adı",
+                "required": true,
+                "indexed": true
+            },
+            {
+                "key": "ozet",
+                "type": "textarea",
+                "label": "Özet",
+                "help": "Oda kartlarında ve liste sayfasında görünür"
+            },
+            {
+                "key": "aciklama",
+                "type": "richtext",
+                "label": "Açıklama"
+            },
+            {
+                "key": "kapak",
+                "type": "media",
+                "label": "Kapak görseli"
+            },
+            {
+                "key": "galeri",
+                "type": "gallery",
+                "label": "Galeri",
+                "help": "Oda detayında kapak altında iki sütun olarak gösterilir"
+            },
+            {
+                "key": "fiyat",
+                "type": "number",
+                "label": "Gecelik fiyat",
+                "indexed": true,
+                "width": "half"
+            },
+            {
+                "key": "kapasite",
+                "type": "number",
+                "label": "Kapasite (kişi)",
+                "required": true,
+                "indexed": true,
+                "width": "half"
+            },
+            {
+                "key": "alan",
+                "type": "number",
+                "label": "Alan (m²)",
+                "width": "half"
+            },
+            {
+                "key": "yatak",
+                "type": "text",
+                "label": "Yatak",
+                "help": "Örn. King (180 cm) + tek kişilik ilave",
+                "width": "half"
+            },
+            {
+                "key": "manzara",
+                "type": "text",
+                "label": "Manzara",
+                "width": "half"
+            },
+            {
+                "key": "olanaklar",
+                "type": "list",
+                "label": "Olanaklar",
+                "help": "Her satır bir madde: Özel teras, Klima, Yağmurlama duş…"
+            },
+            {
+                "key": "one_cikan",
+                "type": "boolean",
+                "label": "Ana sayfada öne çıkar",
+                "indexed": true
+            }
+        ],
+        "groups": []
+    }
+}

@@ -1,0 +1,133 @@
+{
+    "type": "hizmet",
+    "locale": "tr",
+    "status": "published",
+    "records": [
+        {
+            "slug": "bahce-kahvaltisi",
+            "data": {
+                "ad": "Bahçe Kahvaltısı",
+                "ozet": "Uzun masada, komşu bahçelerden gelenle kurulan ve saat tutmayan kahvaltı.",
+                "aciklama": "<p>Peynirler Karaburun'dan, zeytinyağı üç kilometre ötedeki değirmenden, yumurtalar arka bahçedeki kümesten geliyor. Reçelleri kışın biz kaynatıyoruz.</p>\n<p>Masaya saat 08.00'de kuruluyor ve 11.30'a kadar toplanmıyor. Geç kalkanlar için sorun değil.</p>",
+                "kapak": "https://images.unsplash.com/photo-1493770348161-369560ae357d?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "08.00 – 11.30",
+                "konum": "Avlu, incir ağacının altı",
+                "detaylar": [
+                    "Konaklamaya dahil",
+                    "Vegan ve glutensiz alternatif",
+                    "Odaya servis mümkün"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Bahçe Kahvaltısı",
+                "meta_description": "Uzun masada, komşu bahçelerden gelenle kurulan ve saat tutmayan kahvaltı."
+            }
+        },
+        {
+            "slug": "spa-hamam",
+            "data": {
+                "ad": "Hamam & Masaj",
+                "ozet": "Bodrum kattaki iki kişilik taş hamam ve randevuyla gelen masaj terapisti.",
+                "aciklama": "<p>Hamam evin kendi kuyusundan beslenen su ısıtıcısıyla çalışıyor. Göbek taşı tek parça mermer; kubbe delikleri restore edildi.</p>\n<p>Masaj için terapistimiz haftanın altı günü geliyor. Bir gün önceden haber vermeniz yeterli.</p>",
+                "kapak": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "11.00 – 20.00 · randevulu",
+                "konum": "Bodrum kat",
+                "detaylar": [
+                    "45 dk kese & köpük",
+                    "60 dk aromaterapi masajı",
+                    "Çift kullanımı için özel seans"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Hamam & Masaj",
+                "meta_description": "Bodrum kattaki iki kişilik taş hamam ve randevuyla gelen masaj terapisti."
+            }
+        },
+        {
+            "slug": "havuz-ve-teras",
+            "data": {
+                "ad": "Havuz & Güneş Terası",
+                "ozet": "Sekiz metrelik havuz, on şezlong, sessizlik kuralı.",
+                "aciklama": "<p>Havuz sabah 08.00'de açılıyor, akşam 20.00'de kapanıyor. Kenarında sekiz şezlong, iki gölgelik ve bir küçük bar var.</p>\n<p>Müzik yok, yüksek ses yok — bu, konuklarımızın en çok teşekkür ettiği kuralımız.</p>",
+                "kapak": "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "08.00 – 20.00",
+                "konum": "Arka bahçe",
+                "detaylar": [
+                    "Isıtmalı (nisan–ekim)",
+                    "Havlu servisi",
+                    "Hafif atıştırma menüsü"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Havuz & Güneş Terası",
+                "meta_description": "Sekiz metrelik havuz, on şezlong, sessizlik kuralı."
+            }
+        },
+        {
+            "slug": "mutfak",
+            "data": {
+                "ad": "Akşam Mutfağı",
+                "ozet": "Haftanın dört akşamı, on iki kişilik tek masa ve o gün ne bulunduysa ondan menü.",
+                "aciklama": "<p>Perşembeden pazara, akşam 20.00'de tek oturum. Menü sabit; pazardan ne geldiyse o pişiyor.</p>\n<p>Masada oteldeki konuklar ve rezervasyon yaptıran birkaç misafir birlikte oturuyor. Yer sınırlı, aynı gün sabahına kadar haber vermenizi rica ediyoruz.</p>",
+                "kapak": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "Perşembe – Pazar · 20.00",
+                "konum": "Mutfak, uzun masa",
+                "detaylar": [
+                    "Sabit menü, 5 tabak",
+                    "Yerel şarap eşleşmesi",
+                    "12 kişilik tek masa"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Akşam Mutfağı",
+                "meta_description": "Haftanın dört akşamı, on iki kişilik tek masa ve o gün ne bulunduysa ondan menü."
+            }
+        },
+        {
+            "slug": "bisiklet-ve-koylar",
+            "data": {
+                "ad": "Bisiklet & Koy Turu",
+                "ozet": "Altı bisiklet, üç koy rotası ve sırt çantasında hazır öğle sepeti.",
+                "aciklama": "<p>Bisikletler ücretsiz; kask ve kilit dahil. Rotaları biz çizdik: en kısası 6 km, en uzunu 22 km.</p>\n<p>Bir akşam önceden söylerseniz öğle sepetini hazırlıyoruz — sandviç, meyve, su, soğuk kalan bir şişe.</p>",
+                "kapak": "https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "Gün boyu",
+                "konum": "Kapı önü, bisiklet sundurması",
+                "detaylar": [
+                    "Ücretsiz bisiklet",
+                    "Basılı rota haritası",
+                    "Öğle sepeti (ek ücretli)"
+                ],
+                "one_cikan": false
+            },
+            "seo": {
+                "meta_title": "Bisiklet & Koy Turu",
+                "meta_description": "Altı bisiklet, üç koy rotası ve sırt çantasında hazır öğle sepeti."
+            }
+        },
+        {
+            "slug": "ozel-etkinlik",
+            "data": {
+                "ad": "Özel Etkinlik & Nikah",
+                "ozet": "Evin tamamının kapatıldığı, en çok altmış kişilik küçük kutlamalar.",
+                "aciklama": "<p>Avlu ve bahçe birlikte altmış kişiye kadar oturmalı düzen alıyor. Bu tür günlerde ev dışa kapanıyor, tüm odalar davete ayrılıyor.</p>\n<p>Menü, çiçek ve müzik için birlikte çalıştığımız ekipler var; isterseniz kendi ekibinizle de gelebilirsiniz.</p>",
+                "kapak": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
+                "saatler": "Talebe göre",
+                "konum": "Avlu, bahçe ve tüm ev",
+                "detaylar": [
+                    "Maks. 60 kişi",
+                    "11 oda dahil",
+                    "Nikah için resmi düzen"
+                ],
+                "one_cikan": false
+            },
+            "seo": {
+                "meta_title": "Özel Etkinlik & Nikah",
+                "meta_description": "Evin tamamının kapatıldığı, en çok altmış kişilik küçük kutlamalar."
+            }
+        }
+    ]
+}

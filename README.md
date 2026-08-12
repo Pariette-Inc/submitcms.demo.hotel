@@ -51,6 +51,10 @@ _(fiyat/para birimi `commerce.price` alanından da okunur)_
 
 **`hizmet`** — `ad`, `ozet`, `aciklama`, `gorsel`, `saatler`, `konum`, `detaylar`, `one_cikan`
 
+İçerik tiplerinin ve demo kayıtların panele aktarılabilir şablonları
+[`submitcms/`](submitcms/) klasöründe: `content-types/` (tip tanımları),
+`records/` (6 oda + 6 hizmet). Ayrıntı için [submitcms/README.md](submitcms/README.md).
+
 ### Ticket (form) akışı
 
 Alan adları panelde tanımlı olduğu ve SDK payload'ı olduğu gibi geçirdiği için,

@@ -31,6 +31,9 @@
   indirger (dizi ya da nesne biçimi), `buildTicketPayload()` değerleri alan koduna/etiketine göre eşler.
   Şemada olmayan değer mesaja iliştirilir; zorunlu ama eşleşmeyen alan SistemTakip'e `warn` düşer.
   Şema 10 dakika bellekte tutulur (`getTicketForm`).
+- **Import şablonları:** `submitcms/content-types/{oda,hizmet}.json` (şema) ve
+  `submitcms/records/{oda,hizmet}.json` (12 kayıt). Alan anahtarları `mappers.ts` ile
+  eşleşecek şekilde seçildi; kayıtlar mapper'dan geçirilerek doğrulandı.
 - **Bildirim:** `src/lib/sistemtakip.ts` → `notifySafe()`. Rezervasyon talebi `confirm`, rate limit `warn`,
   submitcms hatası `error`. `SISTEMTAKIP_API_KEY` yoksa olay sunucu log'una yazılır.
 - **Rate limit:** süreç içi `Map` (`src/lib/rate-limit.ts`). Çok instance'lı kurulumda Redis'e taşınacak.

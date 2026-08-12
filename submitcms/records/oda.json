@@ -1,0 +1,217 @@
+{
+    "type": "oda",
+    "locale": "tr",
+    "status": "published",
+    "records": [
+        {
+            "slug": "bahce-odasi",
+            "data": {
+                "ad": "Bahçe Odası",
+                "ozet": "Zemin katta, kapısı doğrudan lavanta tarhına açılan sakin bir oda.",
+                "aciklama": "<p>Sabah ilk ışığı doğu duvarından alır; perdeyi araladığınızda yatağın ayakucuna kadar gelir. Kalın taş duvarlar öğle sıcağını içeri sokmaz.</p>\n<p>Kendi küçük terasında iki hasır koltuk ve bir sehpa var. Kahvaltınızı odanıza istemeniz halinde buraya kuruyoruz.</p>",
+                "kapak": "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 4200,
+                "kapasite": 2,
+                "alan": 28,
+                "yatak": "Çift kişilik (160 cm)",
+                "manzara": "Bahçe",
+                "olanaklar": [
+                    "Özel teras",
+                    "Klima",
+                    "Yağmurlama duş",
+                    "Pamuk çarşaf",
+                    "Minibar (ikram)",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Bahçe Odası",
+                "meta_description": "Zemin katta, kapısı doğrudan lavanta tarhına açılan sakin bir oda."
+            },
+            "commerce": {
+                "price": 4200,
+                "currency": "TRY"
+            }
+        },
+        {
+            "slug": "tas-ev-suiti",
+            "data": {
+                "ad": "Taş Ev Süiti",
+                "ozet": "Evin en eski bölümü: kemerli tavan, oturma köşesi ve gömme şömine.",
+                "aciklama": "<p>Yapının 1912'den kalan tek odası. Kemerli tavanı ve gömme şöminesi restorasyonda olduğu gibi bırakıldı; sadece harcı yenilendi.</p>\n<p>Yatak odasıyla oturma bölümü kemerle ayrılıyor. İki kişilik konfor, üçüncü kişi için ilave yatak mümkün.</p>",
+                "kapak": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 6400,
+                "kapasite": 3,
+                "alan": 45,
+                "yatak": "King (180 cm) + tek kişilik ilave",
+                "manzara": "Avlu",
+                "olanaklar": [
+                    "Oturma köşesi",
+                    "Gömme şömine",
+                    "Küvet",
+                    "Nespresso",
+                    "Çalışma masası",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Taş Ev Süiti",
+                "meta_description": "Evin en eski bölümü: kemerli tavan, oturma köşesi ve gömme şömine."
+            },
+            "commerce": {
+                "price": 6400,
+                "currency": "TRY"
+            }
+        },
+        {
+            "slug": "deniz-manzarali-oda",
+            "data": {
+                "ad": "Deniz Manzaralı Oda",
+                "ozet": "Üst katın köşesinde; iki penceresinden biri değirmenlere, biri denize bakar.",
+                "aciklama": "<p>Havanın açık olduğu günlerde Çeşme körfezi ufukta ince bir çizgi gibi görünür. Akşamüstü ışığı için evin en iyi odası.</p>\n<p>Yatak pencereye dönük yerleştirildi; sabah gözünüzü açtığınızda ilk gördüğünüz şey manzara oluyor.</p>",
+                "kapak": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 5300,
+                "kapasite": 2,
+                "alan": 32,
+                "yatak": "Çift kişilik (160 cm)",
+                "manzara": "Deniz ve değirmenler",
+                "olanaklar": [
+                    "Deniz manzarası",
+                    "Klima",
+                    "Yağmurlama duş",
+                    "Karartma perde",
+                    "Bluetooth hoparlör",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Deniz Manzaralı Oda",
+                "meta_description": "Üst katın köşesinde; iki penceresinden biri değirmenlere, biri denize bakar."
+            },
+            "commerce": {
+                "price": 5300,
+                "currency": "TRY"
+            }
+        },
+        {
+            "slug": "cati-kati-suiti",
+            "data": {
+                "ad": "Çatı Katı Süiti",
+                "ozet": "Eğimli ahşap tavan, özel çatı terası ve iki kişilik bir küvet.",
+                "aciklama": "<p>Merdivenin sonundaki tek oda. Ahşap kirişler açıkta bırakıldı, tavan penceresinden gece yıldız görünür.</p>\n<p>On beş metrekarelik özel terasında şezlong ve gölgelik var; akşam yemeğini burada kurmamızı isteyebilirsiniz.</p>",
+                "kapak": "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1578898887932-dce23a595ad4?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 7800,
+                "kapasite": 2,
+                "alan": 52,
+                "yatak": "King (180 cm)",
+                "manzara": "Çatılar ve gün batımı",
+                "olanaklar": [
+                    "Özel çatı terası",
+                    "Serbest duran küvet",
+                    "Tavan penceresi",
+                    "Nespresso",
+                    "Yastık menüsü",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": true
+            },
+            "seo": {
+                "meta_title": "Çatı Katı Süiti",
+                "meta_description": "Eğimli ahşap tavan, özel çatı terası ve iki kişilik bir küvet."
+            },
+            "commerce": {
+                "price": 7800,
+                "currency": "TRY"
+            }
+        },
+        {
+            "slug": "avlu-odasi",
+            "data": {
+                "ad": "Avlu Odası",
+                "ozet": "İncir ağacının gölgesine bakan, evin en serin odası.",
+                "aciklama": "<p>Avluya açılan çift kanatlı kapısı yaz boyunca açık durur. Ağacın gölgesi öğleden sonra tam pencerenin önüne düşer.</p>\n<p>Tek başına gelen konuklar için sık tercih edilen oda; sessiz ve iç tarafta.</p>",
+                "kapak": "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 3800,
+                "kapasite": 2,
+                "alan": 26,
+                "yatak": "Çift kişilik (140 cm)",
+                "manzara": "Avlu",
+                "olanaklar": [
+                    "Avluya açılan kapı",
+                    "Klima",
+                    "Yağmurlama duş",
+                    "Çalışma masası",
+                    "Kitaplık",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": false
+            },
+            "seo": {
+                "meta_title": "Avlu Odası",
+                "meta_description": "İncir ağacının gölgesine bakan, evin en serin odası."
+            },
+            "commerce": {
+                "price": 3800,
+                "currency": "TRY"
+            }
+        },
+        {
+            "slug": "bag-evi",
+            "data": {
+                "ad": "Bağ Evi",
+                "ozet": "Bahçenin ucunda müstakil ev: iki oda, küçük mutfak ve kendi havuzu.",
+                "aciklama": "<p>Ana binadan ayrı, kendi girişi olan taş ev. Bir aile ya da iki çift için düşünüldü.</p>\n<p>Mutfağı çalışır durumda; isterseniz alışverişinizi biz yapar, dolabı siz gelmeden doldururuz. Havuzu dört metre, gün boyu güneş alır.</p>",
+                "kapak": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80",
+                "galeri": [
+                    "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1600&q=80",
+                    "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80"
+                ],
+                "fiyat": 12500,
+                "kapasite": 4,
+                "alan": 70,
+                "yatak": "İki yatak odası — King + iki tek kişilik",
+                "manzara": "Bağ ve havuz",
+                "olanaklar": [
+                    "Özel havuz",
+                    "Tam donanımlı mutfak",
+                    "İki banyo",
+                    "Müstakil giriş",
+                    "Çamaşır makinesi",
+                    "Ücretsiz Wi-Fi"
+                ],
+                "one_cikan": false
+            },
+            "seo": {
+                "meta_title": "Bağ Evi",
+                "meta_description": "Bahçenin ucunda müstakil ev: iki oda, küçük mutfak ve kendi havuzu."
+            },
+            "commerce": {
+                "price": 12500,
+                "currency": "TRY"
+            }
+        }
+    ]
+}
