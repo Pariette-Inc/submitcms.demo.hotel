@@ -1,12 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AnnouncementStrip } from "@/components/announcement-strip";
 import { BookingBar } from "@/components/booking-bar";
 import { GalleryStrip } from "@/components/gallery-strip";
 import { RoomCard } from "@/components/room-card";
 import { ServiceCard } from "@/components/service-card";
 import { ButtonLink, Label, SectionHeading } from "@/components/ui";
-import { fallbackGallery, heroImage, storyImage } from "@/data/fallback";
-import { getRooms, getServices, getSiteInfo } from "@/lib/cms";
+import { heroImage, storyImage } from "@/data/fallback";
+import {
+  getBanners,
+  getGallery,
+  getRooms,
+  getServices,
+  getSiteInfo,
+} from "@/lib/cms";
+import { GALLERY_SLUG } from "@/lib/content";
 
 export const revalidate = 300;
 
@@ -18,10 +26,12 @@ const stats = [
 ];
 
 export default async function HomePage() {
-  const [site, rooms, services] = await Promise.all([
+  const [site, rooms, services, gallery, banners] = await Promise.all([
     getSiteInfo(),
     getRooms(),
     getServices(),
+    getGallery(GALLERY_SLUG),
+    getBanners(),
   ]);
 
   const featuredRooms = (rooms.filter((room) => room.featured).length
@@ -68,6 +78,8 @@ export default async function HomePage() {
           <BookingBar />
         </div>
       </section>
+
+      <AnnouncementStrip banners={banners} />
 
       <section className="mx-auto grid w-full max-w-[1240px] items-center gap-14 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-2 lg:gap-20">
         <div className="relative aspect-[4/5] overflow-hidden bg-wash">
@@ -148,7 +160,7 @@ export default async function HomePage() {
         <div className="mx-auto mb-10 w-full max-w-[1240px] px-5 sm:px-8">
           <Label>Evden kareler</Label>
         </div>
-        <GalleryStrip images={fallbackGallery} />
+        <GalleryStrip images={gallery} />
       </section>
 
       <section className="bg-pine px-5 py-24 text-paper sm:px-8 sm:py-32">

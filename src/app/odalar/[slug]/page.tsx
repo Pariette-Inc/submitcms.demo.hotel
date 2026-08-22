@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { RoomCard } from "@/components/room-card";
 import { ButtonLink, DetailRow, Label } from "@/components/ui";
-import { getRoom, getRooms, getSiteInfo } from "@/lib/cms";
+import { ViewPing } from "@/components/view-ping";
+import { getRelatedRooms, getRoom, getRooms, getSiteInfo } from "@/lib/cms";
+import { CONTENT_TYPES } from "@/lib/content";
 import { formatPrice } from "@/lib/utils";
 
 export const revalidate = 300;
@@ -35,14 +38,20 @@ export async function generateMetadata(
 
 export default async function RoomPage(props: PageProps<"/odalar/[slug]">) {
   const { slug } = await props.params;
-  const [room, rooms, site] = await Promise.all([getRoom(slug), getRooms(), getSiteInfo()]);
+  // `others` submitcms'in kendi önerisidir (`delivery.alsoRead`); tip açılmamışsa
+  // aynı listeden kendisi dışındakilere düşer.
+  const [room, others, site] = await Promise.all([
+    getRoom(slug),
+    getRelatedRooms(slug),
+    getSiteInfo(),
+  ]);
 
   if (!room) notFound();
 
-  const others = rooms.filter((item) => item.slug !== room.slug).slice(0, 3);
-
   return (
     <>
+      <ViewPing type={CONTENT_TYPES.room} slug={slug} />
+
       <section className="px-5 pb-12 pt-[132px] sm:px-8 sm:pt-[160px]">
         <div className="mx-auto w-full max-w-[1240px]">
           <Link href="/odalar" className="underline-sweep label text-mute">
@@ -120,6 +129,8 @@ export default async function RoomPage(props: PageProps<"/odalar/[slug]">) {
             <p className="mt-4 text-center text-[12px] leading-relaxed text-mute">
               Ön ödeme yok. Uygunluğu 12 saat içinde teyit ediyoruz.
             </p>
+
+            <AvailabilityCalendar slug={room.slug} currency={room.currency} />
           </div>
         </aside>
       </section>

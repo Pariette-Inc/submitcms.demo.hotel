@@ -1,11 +1,31 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Field, inputClass } from "@/components/form-field";
 import { Button } from "@/components/ui";
 import { reservationSchema } from "@/lib/schemas";
-import { formatPrice, isoDate, nightsBetween } from "@/lib/utils";
+import { formatDate, formatPrice, isoDate, nightsBetween } from "@/lib/utils";
+
+/**
+ * `POST /api/musaitlik` yanıtı. `known: false` "oda panelde rezervasyona
+ * açılmamış" demektir — o durumda hiçbir şey gösterilmez; "dolu" demek olmaz.
+ */
+type Availability =
+  | { known: false }
+  | {
+      known: true;
+      available: boolean;
+      reason: string | null;
+      message: string | null;
+      units: number;
+      price: number;
+      currency: string;
+      breakdown: Array<{ date: string; price: number }>;
+    };
+
+/** Rezervasyon başarılıysa referans kodu buradan sonuç sayfasına taşınır. */
+export const BOOKING_STORAGE_KEY = "pariette:son-rezervasyon";
 
 export type RoomOption = {
   slug: string;
@@ -52,6 +72,11 @@ export function ReservationForm({
   });
   const [errors, setErrors] = useState<Errors>({});
   const [pending, setPending] = useState(false);
+  const [availability, setAvailability] = useState<{
+    key: string;
+    value: Availability;
+  } | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const nights = nightsBetween(values.checkIn, values.checkOut);
   const selectedRoom = useMemo(
@@ -59,6 +84,50 @@ export function ReservationForm({
     [rooms, values.room],
   );
   const estimate = selectedRoom && nights > 0 ? selectedRoom.price * nights : 0;
+
+  const { room, checkIn, checkOut } = values;
+  /** Sorgunun kimliği: sonuç yalnız kendi anahtarıyla eşleşirse gösterilir. */
+  const queryKey = `${room}|${checkIn}|${checkOut}`;
+
+  /**
+   * Oda ve tarihler tamamlandığında submitcms'e müsaitlik sorulur
+   * (`delivery.reservations.availability` → `/api/musaitlik`). Yazmadan önce
+   * sorulduğu için misafir "gönder"e basıp reddedilmez.
+   */
+  useEffect(() => {
+    if (!room || nights <= 0) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setChecking(true);
+      try {
+        const response = await fetch("/api/musaitlik", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ room, checkIn, checkOut }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) return;
+
+        const body = (await response.json()) as { data?: Availability };
+        if (body.data) setAvailability({ key: queryKey, value: body.data });
+      } catch {
+        // İptal ya da ağ hatası: sessiz kal, form yine de gönderilebilir.
+      } finally {
+        if (!controller.signal.aborted) setChecking(false);
+      }
+    }, 400);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [room, checkIn, checkOut, nights, queryKey]);
+
+  // Eski bir sorgunun sonucu yeni tarihlerde gösterilmez.
+  const current = availability?.key === queryKey ? availability.value : null;
+  const live = current?.known ? current : null;
 
   function set<K extends keyof Values>(key: K, value: Values[K]) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -116,12 +185,32 @@ export function ReservationForm({
       }
 
       const body = (await response.json().catch(() => null)) as
-        | { data?: { stored?: boolean } }
+        | {
+            data?: {
+              mode?: "reservation" | "request";
+              code?: string;
+              status?: string;
+              nights?: number;
+            };
+          }
         | null;
 
-      if (body?.data?.stored === false) {
-        setErrors({ form: "Talebiniz kaydedilemedi. Lütfen telefonla ulaşın." });
-        return;
+      // Referans kodu query string'e yazılmaz; sonuç sayfası sessionStorage'dan okur.
+      if (body?.data?.mode === "reservation" && body.data.code) {
+        try {
+          window.sessionStorage.setItem(
+            BOOKING_STORAGE_KEY,
+            JSON.stringify({
+              code: body.data.code,
+              status: body.data.status ?? "pending",
+              checkIn: parsed.data.checkIn,
+              checkOut: parsed.data.checkOut,
+              nights: body.data.nights ?? nights,
+            }),
+          );
+        } catch {
+          // Gizli sekmede sessionStorage yazılamayabilir; kod yalnız e-postada kalır.
+        }
       }
 
       router.push("/rezervasyon/basarili");
@@ -288,9 +377,55 @@ export function ReservationForm({
       </fieldset>
 
       <div className="flex flex-col gap-5 border-t border-line pt-8">
-        {estimate > 0 ? (
+        {live ? (
+          <div
+            className={
+              live.available
+                ? "border border-pine/30 bg-pine/5 px-4 py-4"
+                : "border border-[#a4442f]/30 bg-[#a4442f]/5 px-4 py-4"
+            }
+          >
+            <p className="label text-mute">
+              {live.available ? "Bu tarihler müsait" : "Bu tarihler müsait değil"}
+            </p>
+            {live.message ? (
+              <p className="mt-2 text-[13px] leading-relaxed text-ink/80">{live.message}</p>
+            ) : null}
+
+            {live.available ? (
+              <>
+                <div className="mt-4 flex items-baseline justify-between gap-6">
+                  <span className="text-[13px] text-mute">
+                    {live.units} gece · güncel fiyat
+                  </span>
+                  <span className="display text-[28px]">
+                    {formatPrice(live.price, live.currency)}
+                  </span>
+                </div>
+
+                {live.breakdown.length > 1 ? (
+                  <ul className="mt-4 flex flex-col gap-1 border-t border-line pt-3">
+                    {live.breakdown.map((night) => (
+                      <li
+                        key={night.date}
+                        className="flex justify-between gap-4 text-[12px] text-mute"
+                      >
+                        <span>{formatDate(night.date)}</span>
+                        <span className="tabular-nums">
+                          {formatPrice(night.price, live.currency)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : null}
+          </div>
+        ) : estimate > 0 ? (
           <div className="flex items-baseline justify-between gap-6">
-            <span className="label text-mute">Tahmini toplam</span>
+            <span className="label text-mute">
+              {checking ? "Müsaitlik sorgulanıyor…" : "Tahmini toplam"}
+            </span>
             <span className="display text-[28px]">
               {formatPrice(estimate, selectedRoom?.currency ?? "TRY")}
             </span>
@@ -303,13 +438,22 @@ export function ReservationForm({
           </p>
         ) : null}
 
-        <Button type="submit" disabled={pending} className="w-full sm:w-fit">
-          {pending ? "Gönderiliyor…" : "Talebi Gönder"}
+        <Button
+          type="submit"
+          disabled={pending || live?.available === false}
+          className="w-full sm:w-fit"
+        >
+          {pending
+            ? "Gönderiliyor…"
+            : live?.available
+              ? "Odayı Ayır"
+              : "Talebi Gönder"}
         </Button>
 
         <p className="text-[12px] leading-relaxed text-mute">
-          Bu bir ön talep formudur; ödeme alınmaz. Talebinizi aldıktan sonra en geç 12 saat
-          içinde uygunluk ve fiyat teyidiyle dönüyoruz.
+          {live?.available
+            ? "Ödeme alınmaz. Onaylandığında referans kodunuzla birlikte e-posta gönderiyoruz."
+            : "Bu bir ön talep formudur; ödeme alınmaz. Talebinizi aldıktan sonra en geç 12 saat içinde uygunluk ve fiyat teyidiyle dönüyoruz."}
         </p>
       </div>
     </form>

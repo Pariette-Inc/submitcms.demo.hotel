@@ -3,6 +3,46 @@
 > Her ekran/servis geliştirmesinden sonra güncellenir. En yeni bölüm en üstte.
 > Format: development-log skill'i (Claude) tarafından otomatik bakılır.
 
+## 2026-08-22 — Her sayfa ve servis submitcms üzerinden
+
+| Ekran / Servis | Arayüz Adresi | API Endpoint(ler) | Not |
+|---|---|---|---|
+| Üst ve alt gezinme | tüm sayfalar (`layout`) | `delivery.menu('ana-menu')`, `delivery.menu('alt-menu')` | güncellendi · menü panelde yoksa koddaki varsayılan liste |
+| Ana sayfa duyuru şeridi | `/` | `delivery.banners()` | yeni · banner yoksa şerit hiç çizilmez |
+| Ana sayfa galerisi | `/` | `delivery.gallery('anasayfa')` | güncellendi · panelde galeri yoksa demo kareleri |
+| Site bilgisi (iletişim, saatler, hikâye) | tüm sayfalar | `delivery.init()` + `delivery.record('site','genel')` | güncellendi · `init()` telefon/adres dönmüyor, tek kayıtlı `site` tipi eklendi |
+| Oda detayı — müsaitlik takvimi | `/odalar/{slug}` | `GET /api/takvim` → `delivery.reservations.calendar` | yeni · 60 gün, kalan adet gösterilmez |
+| Oda detayı — ilgili odalar | `/odalar/{slug}` | `delivery.alsoRead('oda', slug)` | güncellendi · uç yoksa listeden düşer |
+| Hizmet detayı — ilgili hizmetler | `/hizmetler/{slug}` | `delivery.alsoRead('hizmet', slug)` | güncellendi |
+| Görüntülenme bildirimi | oda ve hizmet detayları | `POST /api/goruntuleme` → `delivery.ping` | yeni · `sendBeacon`, okuma süresiyle |
+| Rezervasyon formu — canlı müsaitlik | `/rezervasyon` | `POST /api/musaitlik` → `delivery.reservations.availability` | yeni · tarih seçilince fiyat ve gece kırılımı |
+| Rezervasyon sonucu — referans kodu | `/rezervasyon/basarili` | — | güncellendi · kod `sessionStorage` ile taşınır, query'de değil |
+| Müsaitlik servisi | — | `POST /api/musaitlik` | yeni · 30 istek/dk; modül kapalıysa `known:false` |
+| Takvim servisi | — | `GET /api/takvim?oda=&from=&to=` | yeni · en çok 120 gün |
+| Görüntülenme servisi | — | `POST /api/goruntuleme` | yeni · her durumda 202 |
+| Rezervasyon servisi | — | `POST /api/rezervasyon` | güncellendi · önce `reservations.book`, olmazsa ticket; 422 → 409 |
+| Kurulum teşhisi | — | `GET /api/durum[?probe=1]` | güncellendi · menü/galeri/banner/site kaydı ve rezervasyon modülü durumu |
+
+### Notlar
+
+- **İki hatlı rezervasyon:** oda seçilmişse `delivery.reservations.book()`
+  denenir (takvimde yer tutar, referans kodu döner). Kayıt rezervasyona
+  açılmamışsa (403/404) talep `submitTicket()` ile talep kutusuna yazılır.
+  Kural ihlali (422 — dolu, sezon dışı, çok erken) ticket'a **düşürülmez**;
+  uç 409 döner, misafire gerekçe gösterilir.
+- **`site` içerik tipi:** `delivery.init()` environment satırını döner ve o
+  tabloda telefon/adres sütunu yok. İletişim bilgileri tek kayıtlı `site`
+  tipinden (`slug: genel`) okunur ve `init()` yanıtının üstüne yazılır.
+- **Menü yazma SDK'yı atlıyor:** `sdk.menus.create/update` gövdeyi
+  `{ code, label, items }` kuruyor, `POST/PUT /api/menus` ise
+  `{ code, name, tree }` doğruluyor → 422. İçe aktarma script'i isteği
+  `sdk.client` üzerinden elle kuruyor. SDK düzeltilince geri alınabilir.
+- **Galeri yazma ucu SDK'da yok:** `anasayfa` galerisi panelden açılır.
+- **İçe aktarma bayrakları:** `--menus` (ana-menu + alt-menu),
+  `--reservations` (`oda` kayıtlarını gecelik/kapasite 1/onay bekler olarak açar).
+- **SDK sürümü** `submitcms@^1.1.0`'a yükseltildi — `delivery.reservations`
+  1.0.1'de yoktu.
+
 ## 2026-08-11 — Pariette Hotel butik otel sitesi (Next.js 16 + submitcms)
 
 | Ekran / Servis | Arayüz Adresi | API Endpoint(ler) | Not |

@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { NavItem } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
-const nav = [
-  { href: "/odalar", label: "Odalar" },
-  { href: "/hizmetler", label: "Hizmetler" },
-  { href: "/iletisim", label: "İletişim" },
-] as const;
-
-export function SiteHeader({ siteName, phone }: { siteName: string; phone: string }) {
+export function SiteHeader({
+  siteName,
+  phone,
+  nav,
+}: {
+  siteName: string;
+  phone: string;
+  /** `delivery.menu("ana-menu")` ağacı; menü açılmamışsa kodda tanımlı varsayılan. */
+  nav: NavItem[];
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -50,9 +54,13 @@ export function SiteHeader({ siteName, phone }: { siteName: string; phone: strin
             <Link
               key={item.href}
               href={item.href}
+              target={item.target}
+              rel={item.external ? "noreferrer" : undefined}
               className={cn(
                 "underline-sweep text-[12px] uppercase tracking-[0.2em]",
-                pathname.startsWith(item.href) && "bg-[length:100%_1px]",
+                !item.external &&
+                  pathname.startsWith(item.href) &&
+                  "bg-[length:100%_1px]",
               )}
             >
               {item.label}
@@ -113,6 +121,8 @@ export function SiteHeader({ siteName, phone }: { siteName: string; phone: strin
             <Link
               key={item.href}
               href={item.href}
+              target={item.target}
+              rel={item.external ? "noreferrer" : undefined}
               onClick={() => setOpen(false)}
               className="display border-b border-line py-5 text-[30px]"
             >

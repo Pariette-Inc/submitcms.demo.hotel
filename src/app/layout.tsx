@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { getSiteInfo } from "@/lib/cms";
+import { getNavigation, getSiteInfo } from "@/lib/cms";
+import { MENU_CODES, type NavItem } from "@/lib/content";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -42,6 +43,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+/**
+ * Menü panelde açılmamışsa (yeni kurulumda normal) gezinme buradan gelir.
+ * `delivery.menu()` bir sonuç döndürdüğü anda bu liste kullanılmaz.
+ */
+const defaultNav: NavItem[] = [
+  { label: "Odalar", href: "/odalar", external: false, target: "_self", children: [] },
+  { label: "Hizmetler", href: "/hizmetler", external: false, target: "_self", children: [] },
+  { label: "İletişim", href: "/iletisim", external: false, target: "_self", children: [] },
+];
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -50,14 +61,22 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const site = await getSiteInfo();
+  const [site, headerNav, footerNav] = await Promise.all([
+    getSiteInfo(),
+    getNavigation(MENU_CODES.header),
+    getNavigation(MENU_CODES.footer),
+  ]);
 
   return (
     <html lang="tr" className={`${cormorant.variable} ${inter.variable}`}>
       <body className="min-h-dvh bg-paper text-ink">
-        <SiteHeader siteName={site.name} phone={site.phone} />
+        <SiteHeader
+          siteName={site.name}
+          phone={site.phone}
+          nav={headerNav.length ? headerNav : defaultNav}
+        />
         <main>{children}</main>
-        <SiteFooter site={site} />
+        <SiteFooter site={site} nav={footerNav} />
       </body>
     </html>
   );

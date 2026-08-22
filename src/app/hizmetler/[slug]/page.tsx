@@ -4,7 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ServiceCard } from "@/components/service-card";
 import { ButtonLink, DetailRow, Label } from "@/components/ui";
-import { getService, getServices } from "@/lib/cms";
+import { ViewPing } from "@/components/view-ping";
+import { getRelatedServices, getService, getServices } from "@/lib/cms";
+import { CONTENT_TYPES } from "@/lib/content";
 
 export const revalidate = 300;
 
@@ -34,14 +36,20 @@ export async function generateMetadata(
 
 export default async function ServicePage(props: PageProps<"/hizmetler/[slug]">) {
   const { slug } = await props.params;
-  const [service, services] = await Promise.all([getService(slug), getServices()]);
+  // `others` submitcms önerisidir (`delivery.alsoRead`); tip açılmamışsa listeden düşer.
+  const [service, others] = await Promise.all([
+    getService(slug),
+    getRelatedServices(slug),
+  ]);
+
+  const related = others.slice(0, 2);
 
   if (!service) notFound();
 
-  const others = services.filter((item) => item.slug !== service.slug).slice(0, 2);
-
   return (
     <>
+      <ViewPing type={CONTENT_TYPES.service} slug={slug} />
+
       <section className="px-5 pb-12 pt-[132px] sm:px-8 sm:pt-[160px]">
         <div className="mx-auto w-full max-w-[1240px]">
           <Link href="/hizmetler" className="underline-sweep label text-mute">
@@ -100,12 +108,12 @@ export default async function ServicePage(props: PageProps<"/hizmetler/[slug]">)
         </aside>
       </section>
 
-      {others.length ? (
+      {related.length ? (
         <section className="border-t border-line bg-wash px-5 py-20 sm:px-8 sm:py-28">
           <div className="mx-auto w-full max-w-[1240px]">
             <h2 className="display text-[clamp(1.9rem,4vw,2.8rem)]">Bunlar da var</h2>
             <div className="mt-14 grid gap-12 sm:grid-cols-2">
-              {others.map((item) => (
+              {related.map((item) => (
                 <ServiceCard key={item.slug} service={item} />
               ))}
             </div>

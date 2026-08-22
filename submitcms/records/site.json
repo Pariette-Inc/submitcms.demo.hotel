@@ -1,0 +1,28 @@
+{
+    "type": "site",
+    "locale": "tr",
+    "status": "published",
+    "records": [
+        {
+            "slug": "genel",
+            "data": {
+                "ad": "Pariette Hotel",
+                "slogan": "Alaçatı'nın arka sokağında, on bir odalı küçük bir ev",
+                "hakkinda": "<p>1912'de bir bağ evi olarak yapılan taş yapıyı, avlusundaki incir ağacına dokunmadan onardık. Bugün on bir oda, bir mutfak ve gün boyu gölge veren bir avlu var.</p>\n<p>Resepsiyon yok; kapıda sizi biz karşılıyoruz. Kahvaltı, komşu bahçelerden gelenle sabah kuruluyor. Akşamüstü çayı avluda, güneş taş duvarları turuncuya çevirirken.</p>",
+                "telefon": "+90 232 716 00 11",
+                "whatsapp": "+90 555 716 00 11",
+                "eposta": "merhaba@pariettehotel.example",
+                "instagram": "https://instagram.com",
+                "adres": "2010 Sokak No 7, Alaçatı",
+                "ilce": "Çeşme, İzmir",
+                "harita": "https://maps.google.com/?q=Alacati+Cesme+Izmir",
+                "giris_saati": "14:00",
+                "cikis_saati": "12:00"
+            },
+            "seo": {
+                "meta_title": "Pariette Hotel — Alaçatı butik otel",
+                "meta_description": "Alaçatı'nın arka sokağında on bir odalı taş ev. Resepsiyonsuz, avlulu, komşu bahçelerden kahvaltılı."
+            }
+        }
+    ]
+}

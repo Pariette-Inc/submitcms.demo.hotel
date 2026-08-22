@@ -1,5 +1,12 @@
 import type { SubmitRecord } from "submitcms";
-import type { Room, Service, SiteInfo } from "@/lib/content";
+import type {
+  Banner,
+  GalleryImage,
+  NavItem,
+  Room,
+  Service,
+  SiteInfo,
+} from "@/lib/content";
 import { fallbackSite } from "@/data/fallback";
 
 type Data = Record<string, unknown>;
@@ -58,6 +65,9 @@ function mediaUrl(value: unknown): string {
 function image(data: Data, keys: string[], fallback = ""): string {
   return mediaUrl(pick(data, keys)) || fallback;
 }
+
+/** `image` ile aynı; aşağıdaki mapper'larda okunurluk için ayrı ad. */
+const image_ = image;
 
 function gallery(data: Data, keys: string[], fallback: string[] = []): string[] {
   const value = pick(data, keys);
@@ -188,5 +198,132 @@ export function toSiteInfo(payload: Record<string, unknown> | undefined): SiteIn
     instagram: str(contact, ["instagram"], fallbackSite.instagram),
     checkIn: str(site, ["giris_saati", "check_in"], fallbackSite.checkIn),
     checkOut: str(site, ["cikis_saati", "check_out"], fallbackSite.checkOut),
+  };
+}
+
+// ── Menü ────────────────────────────────────────────────────────────────────
+
+/**
+ * `delivery.menu(code)` → `{ items: [{ label, url, target, children }] }`.
+ * Backend bağlantı hedefini çözer; burada yalnız kabuk normalize edilir.
+ */
+export function toNavItems(payload: unknown, depth = 0): NavItem[] {
+  const raw = Array.isArray(payload)
+    ? payload
+    : ((payload as Data | undefined)?.items as unknown);
+
+  if (!Array.isArray(raw) || depth > 2) return [];
+
+  return raw
+    .map((entry): NavItem | null => {
+      if (!entry || typeof entry !== "object") return null;
+      const item = entry as Data;
+
+      const label = str(item, ["label", "title", "ad", "name"]);
+      const href = str(item, ["url", "href", "route", "link"]);
+      if (!label || !href) return null;
+
+      const target = item.target === "_blank" ? "_blank" : "_self";
+
+      return {
+        label,
+        href,
+        external: /^https?:\/\//i.test(href),
+        target,
+        children: toNavItems(item.children, depth + 1),
+      };
+    })
+    .filter((item): item is NavItem => item !== null);
+}
+
+// ── Banner ──────────────────────────────────────────────────────────────────
+
+/**
+ * `delivery.banners()` → `banners` tablosu satırları
+ * (`title, alt, photo, url, outlink, route, home, status`).
+ */
+export function toBanners(payload: unknown): Banner[] {
+  const rows = Array.isArray(payload)
+    ? payload
+    : ((payload as Data | undefined)?.data as unknown);
+
+  if (!Array.isArray(rows)) return [];
+
+  return rows
+    .map((entry, index): Banner | null => {
+      if (!entry || typeof entry !== "object") return null;
+      const row = entry as Data;
+
+      // status 0 olanlar panelde yayından kaldırılmıştır.
+      if (row.status !== undefined && !bool(row, ["status"], true)) return null;
+
+      const image = image_(row, ["photo", "gorsel", "image", "url"]);
+      if (!image) return null;
+
+      return {
+        id: str(row, ["id"], String(index)),
+        title: str(row, ["title", "baslik"]),
+        alt: str(row, ["alt", "aciklama"]),
+        image,
+        href: str(row, ["outlink", "route", "link"]),
+      };
+    })
+    .filter((item): item is Banner => item !== null);
+}
+
+// ── Galeri ──────────────────────────────────────────────────────────────────
+
+/** `delivery.gallery(slug)` → `{ ...galeri, items: [{ image, description }] }`. */
+export function toGalleryImages(payload: unknown): GalleryImage[] {
+  const root = (payload ?? {}) as Data;
+  const rows = Array.isArray(root.items)
+    ? root.items
+    : Array.isArray(root.images)
+      ? root.images
+      : Array.isArray(payload)
+        ? payload
+        : [];
+
+  return rows
+    .map((entry): GalleryImage | null => {
+      if (typeof entry === "string") return { src: entry, alt: "" };
+      if (!entry || typeof entry !== "object") return null;
+      const row = entry as Data;
+
+      const src = image_(row, ["image", "url", "src", "photo", "gorsel"]);
+      if (!src) return null;
+
+      return { src, alt: str(row, ["alt", "title", "description", "aciklama"]) };
+    })
+    .filter((item): item is GalleryImage => item !== null);
+}
+
+// ── Site bilgisi (`site` içerik tipi) ───────────────────────────────────────
+
+/**
+ * `delivery.init()` yalnızca environment satırını döner (`title`, `url`,
+ * `locale`) — telefon/adres orada yoktur. İletişim bilgileri panelde tek
+ * kayıtlı `site` içerik tipinden okunur; ikisi burada birleştirilir.
+ */
+export function toSiteRecord(
+  record: SubmitRecord | undefined,
+  base: SiteInfo,
+): SiteInfo {
+  if (!record) return base;
+  const data = record.data ?? {};
+
+  return {
+    name: str(data, ["ad", "isim", "name", "baslik"], base.name),
+    tagline: str(data, ["slogan", "tagline", "ozet"], base.tagline),
+    intro: paragraphs(data, ["hakkinda", "hikaye", "aciklama"], base.intro),
+    phone: str(data, ["telefon", "phone", "tel"], base.phone),
+    whatsapp: str(data, ["whatsapp", "wp"], base.whatsapp),
+    email: str(data, ["eposta", "email", "mail"], base.email),
+    address: str(data, ["adres", "address"], base.address),
+    district: str(data, ["ilce", "sehir", "city"], base.district),
+    mapUrl: str(data, ["harita", "map_url", "maps"], base.mapUrl),
+    instagram: str(data, ["instagram"], base.instagram),
+    checkIn: str(data, ["giris_saati", "check_in"], base.checkIn),
+    checkOut: str(data, ["cikis_saati", "check_out"], base.checkOut),
   };
 }

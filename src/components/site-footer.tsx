@@ -1,8 +1,15 @@
 import Link from "next/link";
-import type { SiteInfo } from "@/lib/content";
+import type { NavItem, SiteInfo } from "@/lib/content";
 import { Label } from "@/components/ui";
 
-export function SiteFooter({ site }: { site: SiteInfo }) {
+export function SiteFooter({
+  site,
+  nav,
+}: {
+  site: SiteInfo;
+  /** `delivery.menu("alt-menu")`. Boşsa sütun hiç çizilmez. */
+  nav: NavItem[];
+}) {
   const year = new Date().getFullYear();
 
   return (
@@ -58,6 +65,22 @@ export function SiteFooter({ site }: { site: SiteInfo }) {
             </a>
           </div>
         </div>
+
+        {nav.length ? (
+          <nav className="mt-16 flex flex-wrap gap-x-8 gap-y-3 border-t border-line pt-8">
+            {nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                target={item.target}
+                rel={item.external ? "noreferrer" : undefined}
+                className="underline-sweep text-[13px] text-mute"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        ) : null}
 
         <div className="mt-16 flex flex-col gap-4 border-t border-line pt-8 text-[12px] text-mute sm:flex-row sm:items-center sm:justify-between">
           <p>

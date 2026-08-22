@@ -3,8 +3,13 @@
  * submitcms içe aktarma — içerik tipi + kayıtlar.
  *
  *   node scripts/submitcms-import.mjs hizmet
- *   node scripts/submitcms-import.mjs hizmet oda
+ *   node scripts/submitcms-import.mjs site oda hizmet
  *   node scripts/submitcms-import.mjs hizmet --dry-run
+ *
+ * İçerik tipinin dışındaki panel parçaları ayrı bayraklarla kurulur:
+ *
+ *   --menus          ana-menu / alt-menu (sdk.menus)
+ *   --reservations   `oda` kayıtlarını rezervasyona açar (sdk.reservations.settings)
  *
  * Kaynak: submitcms/content-types/<kod>.json ve submitcms/records/<kod>.json
  *
@@ -35,10 +40,14 @@ for (const file of ['.env.local', '.env']) {
 
 const argv = process.argv.slice(2)
 const dryRun = argv.includes('--dry-run')
+const withMenus = argv.includes('--menus')
+const withReservations = argv.includes('--reservations')
 const codes = argv.filter((arg) => !arg.startsWith('--'))
 
-if (codes.length === 0) {
-  console.error('Kullanım: node scripts/submitcms-import.mjs <tip-kodu…> [--dry-run]')
+if (codes.length === 0 && !withMenus && !withReservations) {
+  console.error(
+    'Kullanım: node scripts/submitcms-import.mjs <tip-kodu…> [--menus] [--reservations] [--dry-run]',
+  )
   process.exit(1)
 }
 
@@ -193,6 +202,136 @@ async function verify(code) {
   }
 }
 
+// ── Menüler ─────────────────────────────────────────────────────────────────
+
+/**
+ * Site gezinmesi. `delivery.menu(code)` bunları çözülmüş ağaç olarak döner;
+ * menü yoksa site koddaki varsayılan gezinmeye düşer (bkz. src/app/layout.tsx).
+ *
+ * DİKKAT — `sdk.menus.create/update` burada KULLANILMIYOR. SDK 1.1.0 gövdeyi
+ * `{ code, label, items }` diye kuruyor, `POST/PUT /api/menus` ise
+ * `{ code, name, tree }` doğruluyor: SDK ile çağırınca 422 dönüyor
+ * ("name alanı gerekli", ağaç da yazılmıyor). Uç sözleşmesi doğru olan, bu
+ * yüzden istek `sdk.client` üzerinden elle kuruluyor. SDK düzeltilince
+ * buradaki iki çağrı `sdk.menus.*` ile değiştirilebilir.
+ */
+const MENUS = [
+  {
+    code: 'ana-menu',
+    label: 'Ana menü',
+    items: [
+      { type: 'url', label: 'Odalar', url: '/odalar' },
+      { type: 'url', label: 'Hizmetler', url: '/hizmetler' },
+      { type: 'url', label: 'İletişim', url: '/iletisim' },
+    ],
+  },
+  {
+    code: 'alt-menu',
+    label: 'Alt menü',
+    items: [
+      { type: 'url', label: 'Odalar', url: '/odalar' },
+      { type: 'url', label: 'Hizmetler', url: '/hizmetler' },
+      { type: 'url', label: 'Rezervasyon', url: '/rezervasyon' },
+      { type: 'url', label: 'İletişim', url: '/iletisim' },
+    ],
+  },
+]
+
+async function ensureMenus() {
+  for (const menu of MENUS) {
+    if (dryRun) {
+      log(`   [dry-run] menü: ${menu.code} (${menu.items.length} bağlantı)`)
+      continue
+    }
+
+    try {
+      let exists = false
+      try {
+        const current = await sdk.menus.get(menu.code)
+        exists = Boolean(current?.data)
+      } catch (err) {
+        if (!(err instanceof SubmitError) || err.code !== 404) throw err
+      }
+
+      if (exists) {
+        await sdk.client.put(`/api/menus/${menu.code}`, {
+          name: menu.label,
+          tree: menu.items,
+        })
+        log(`   ↻ ${menu.code}`)
+      } else {
+        await sdk.client.post('/api/menus', {
+          code: menu.code,
+          name: menu.label,
+          tree: menu.items,
+        })
+        log(`   + ${menu.code}`)
+      }
+
+      const published = await sdk.delivery.menu(menu.code)
+      const items = published?.data?.items ?? []
+      log(`     delivery doğrulaması: ${items.length} bağlantı`)
+    } catch (err) {
+      fail(`menü ${menu.code}`, err)
+    }
+  }
+}
+
+// ── Rezervasyon ─────────────────────────────────────────────────────────────
+
+/**
+ * Bir kaydı rezervasyona AÇAN çağrı `settings.save()`'dir; ayarı olmayan
+ * kayıtta müsaitlik `not_reservable` döner ve site talebi ticket'a düşürür.
+ *
+ * `auto_confirm: false` bilerek: talep `pending` gelir, personel onaylar.
+ * `reservations` modülü kapalıysa uç 403 döner — o zaman panelden açılmalı.
+ */
+async function openReservations() {
+  let rooms = []
+  try {
+    const response = await sdk.records.list('oda', { per_page: 100, locale: 'tr' })
+    rooms = response.data ?? []
+  } catch (err) {
+    fail('oda kayıtları okunamadı', err)
+    return
+  }
+
+  if (!rooms.length) {
+    log('   ! önce `oda` kayıtlarını aktarın (node scripts/submitcms-import.mjs oda)')
+    return
+  }
+
+  for (const room of rooms) {
+    const price = Number(room.data?.fiyat ?? room.commerce?.price ?? 0)
+    const payload = {
+      capacity: 1,
+      unit: 'night',
+      min_units: 1,
+      lead_time_hours: 6,
+      auto_confirm: false,
+      base_price: price,
+      currency: 'TRY',
+      active: true,
+    }
+
+    if (dryRun) {
+      log(`   [dry-run] rezervasyona açılacaktı: ${room.slug} (${price} TRY/gece)`)
+      continue
+    }
+
+    try {
+      await sdk.reservations.settings.save(room.id, payload)
+      log(`   ✓ ${room.slug} — ${price} TRY/gece, kapasite 1, onay bekler`)
+    } catch (err) {
+      fail(`rezervasyon ayarı ${room.slug}`, err)
+      if (err instanceof SubmitError && err.code === 403) {
+        log('     `reservations` modülü kapalı görünüyor; panelden açılması gerekiyor.')
+        return
+      }
+    }
+  }
+}
+
 // ── Akış ────────────────────────────────────────────────────────────────────
 if (!SUBMITCMS_CONSOLE_EMAIL || !SUBMITCMS_CONSOLE_PASSWORD) {
   console.error(
@@ -232,6 +371,16 @@ for (const code of codes) {
   } catch (err) {
     fail(code, err)
   }
+}
+
+if (withMenus) {
+  log(`\n▸ menüler${dryRun ? ' (dry-run)' : ''}`)
+  await ensureMenus()
+}
+
+if (withReservations) {
+  log(`\n▸ rezervasyon ayarları${dryRun ? ' (dry-run)' : ''}`)
+  await openReservations()
 }
 
 log('\nBitti.')

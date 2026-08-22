@@ -66,3 +66,23 @@ export const contactSchema = z.object({
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;
+
+/**
+ * `POST /api/musaitlik` gövdesi. Kişisel veri taşımaz; yalnız oda ve tarih.
+ * Rezervasyon formundaki alanların aynısı olduğu için aynı doğrulayıcılar.
+ */
+export const availabilityQuerySchema = z
+  .object({
+    room: z.string().trim().min(1, "Oda seçin").max(120),
+    checkIn: dateField("Giriş tarihi"),
+    checkOut: dateField("Çıkış tarihi"),
+    quantity: z.coerce.number().int().min(1).max(5).optional(),
+  })
+  .refine(
+    (value) =>
+      new Date(`${value.checkOut}T00:00:00`).getTime() >
+      new Date(`${value.checkIn}T00:00:00`).getTime(),
+    { message: "Çıkış tarihi girişten sonra olmalı", path: ["checkOut"] },
+  );
+
+export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;

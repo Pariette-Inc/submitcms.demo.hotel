@@ -7,9 +7,18 @@ Biçim, `sema-sablon.json` referansıyla birebir aynı (`code` / `name` / `kind`
 ```
 content-types/oda.json       → "Oda" içerik tipi (12 alan)
 content-types/hizmet.json    → "Hizmet" içerik tipi (8 alan)
+content-types/site.json      → "Site bilgileri" tipi (12 alan, tek kayıt)
 records/oda.json             → 6 oda kaydı
 records/hizmet.json          → 6 hizmet kaydı
+records/site.json            → 1 kayıt (slug: genel)
 ```
+
+Bu klasörde **olmayan** iki şey var, ikisi de bilerek:
+
+- **Galeri.** SDK'da galeri yazma ucu yok; `anasayfa` galerisi panelden açılır.
+  Açılana kadar ana sayfa `src/data/fallback.ts` karelerini gösterir.
+- **Menü ve rezervasyon ayarları.** Bunlar JSON şablonu değil, script bayrağı:
+  `--menus` ve `--reservations` (bkz. kök README).
 
 ## Sıra
 
@@ -35,6 +44,12 @@ ama sınırsız değil.
 | Saatler / konum | — | `saatler`, `konum` |
 | Madde listesi | `olanaklar` | `detaylar` |
 | Öne çıkar | `one_cikan` | `one_cikan` |
+
+`site` tipi ayrı bir tablo: `ad`, `slogan`, `hakkinda`, `telefon`, `whatsapp`,
+`eposta`, `instagram`, `adres`, `ilce`, `harita`, `giris_saati`, `cikis_saati`.
+Bu tip **tek kayıtlıdır** (`slug: genel`); site onu `delivery.record('site',
+'genel')` ile okur ve `delivery.init()` yanıtının üstüne yazar — `init()`
+environment satırını döner ve orada telefon/adres sütunu yoktur.
 
 ## İçe aktarmadan önce kontrol edilecek iki şey
 

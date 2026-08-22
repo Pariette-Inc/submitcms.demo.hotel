@@ -1,0 +1,90 @@
+{
+    "code": "site",
+    "name": "Site bilgileri",
+    "kind": "content",
+    "description": "Tek kayıtlı ayar tipi: otel adı, iletişim, giriş/çıkış saatleri ve evin hikâyesi. delivery.init() bu alanları döndürmez (environment tablosunda telefon/adres sütunu yok), bu yüzden ayrı bir kayıtta tutulur.",
+    "icon": "settings",
+    "options": {
+        "sluggable": true,
+        "slug_from": "ad",
+        "localized": true,
+        "publishable": true
+    },
+    "schema": {
+        "fields": [
+            {
+                "key": "ad",
+                "type": "text",
+                "label": "Otel adı",
+                "required": true,
+                "indexed": true
+            },
+            {
+                "key": "slogan",
+                "type": "text",
+                "label": "Slogan",
+                "help": "Hero altında ve meta description'da görünür"
+            },
+            {
+                "key": "hakkinda",
+                "type": "richtext",
+                "label": "Evin hikâyesi",
+                "help": "Ana sayfadaki iki paragraf"
+            },
+            {
+                "key": "telefon",
+                "type": "text",
+                "label": "Telefon",
+                "width": "half"
+            },
+            {
+                "key": "whatsapp",
+                "type": "text",
+                "label": "WhatsApp",
+                "width": "half"
+            },
+            {
+                "key": "eposta",
+                "type": "text",
+                "label": "E-posta",
+                "width": "half"
+            },
+            {
+                "key": "instagram",
+                "type": "text",
+                "label": "Instagram adresi",
+                "width": "half"
+            },
+            {
+                "key": "adres",
+                "type": "text",
+                "label": "Adres"
+            },
+            {
+                "key": "ilce",
+                "type": "text",
+                "label": "İlçe / şehir",
+                "width": "half"
+            },
+            {
+                "key": "harita",
+                "type": "text",
+                "label": "Harita bağlantısı",
+                "width": "half"
+            },
+            {
+                "key": "giris_saati",
+                "type": "text",
+                "label": "Giriş saati",
+                "width": "half"
+            },
+            {
+                "key": "cikis_saati",
+                "type": "text",
+                "label": "Çıkış saati",
+                "width": "half"
+            }
+        ],
+        "groups": []
+    }
+}

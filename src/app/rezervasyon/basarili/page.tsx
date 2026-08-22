@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BookingReference } from "@/components/booking-reference";
 import { ButtonLink, Label } from "@/components/ui";
 import { getSiteInfo } from "@/lib/cms";
 
@@ -34,6 +35,8 @@ export default async function ReservationSuccessPage() {
         <p className="mt-7 max-w-2xl text-[17px] leading-relaxed text-mute">
           Teşekkür ederiz. Formunuzu aldık; buradan sonrası bizde.
         </p>
+
+        <BookingReference />
 
         <ol className="mt-16 flex flex-col">
           {steps.map((step, index) => (
