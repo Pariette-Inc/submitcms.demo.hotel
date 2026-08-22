@@ -3,6 +3,58 @@
 > Her ekran/servis geliştirmesinden sonra güncellenir. En yeni bölüm en üstte.
 > Format: development-log skill'i (Claude) tarafından otomatik bakılır.
 
+## 2026-08-22 (2) — "Sürekli çalışıyor / odalar listelenemedi" düzeltmesi
+
+| Ekran / Servis | Arayüz Adresi | API Endpoint(ler) | Not |
+|---|---|---|---|
+| Önbellek düşürme | — | `POST /api/yenile` | yeni · `SUBMITCMS_REVALIDATE_SECRET` ile korumalı; tanımsızsa uç kapalı (404) |
+| Tüm submitcms okumaları | — | — | güncellendi · `unstable_cache` ile 5 dk, `submitcms` etiketiyle |
+
+### Sorun
+
+İki ayrı kusur aynı anda görünüyordu:
+
+1. **Her istek yeniden çağırıyordu.** `submitcms` SDK'sı **axios** kullanıyor,
+   `fetch` değil — Next'in fetch önbelleği bu çağrılara hiç uygulanmıyor,
+   `react.cache` de yalnız tek istek içinde tekrarı önlüyor. `/rezervasyon`
+   arama parametresi okuduğu için dinamik; `export const revalidate = 300`
+   ona işlemiyor. Sonuç: her ziyarette `getRooms()` + `getSiteInfo()` +
+   iki menü çağrısı yeniden gidiyordu.
+2. **Her hata bildirim üretiyordu.** `reportCmsError` her çağrıda SistemTakip'e
+   yazıyordu ve `oda` tipi panelde yoksa dönen **404** de "hata" sayılıyordu.
+
+İkisi çarpışınca "sayfa sürekli çalışıyor, sürekli odalar listelenemedi
+uyarısı geliyor" tablosu çıkıyor.
+
+Ölçüm (yerelde, 404 döndüren sahte API'ye karşı): 20 sayfa isteği → **50** CMS
+isteği ve 50 bildirim. Düzeltmeden sonra: **0** (TTL içinde).
+
+### Düzeltme
+
+- **Okumalar `unstable_cache` ile istekler arasında önbelleklendi** (300 sn,
+  `CACHE_TAG` etiketli): oda/hizmet listeleri ve tekilleri, site kaydı, menüler,
+  banner, galeri, `alsoRead`. Başarısızlık da `null` olarak önbelleğe girer —
+  yoksa bozuk uç her istekte yeniden denenir ve gürültü sürerdi.
+- **Müsaitlik, takvim ve yazma uçları önbelleğe ALINMADI:** rezervasyon
+  müsaitliği beş dakika bayat gösterilemez.
+- **404 artık hata değil.** Tip/kayıt panelde yoksa yalnız sunucu log'una
+  seyrek bir uyarı düşer (içe aktarma komutunu da yazar); bildirim gitmez.
+- **Bildirim soğuma süresi:** aynı bağlam için en çok 15 dakikada bir bildirim.
+- **`POST /api/yenile`** eklendi: önbellek `.next/cache` içinde dağıtımlar arası
+  kalıcı olduğu için, uç düzeldikten sonra beklemeden temizlemek gerekebiliyor.
+- Aynı düzeltme QR menü demosuna da uygulandı.
+
+### Teşhis
+
+Gerçek hata kodunu görmek için (önbelleğe uğramaz, her zaman canlı sorar):
+
+```bash
+curl -s "https://<site>/api/durum" | jq '.data.icerik'
+```
+
+`kaynak: "demo (fallback)"` ve yanında `hata: "404 — …"` görünüyorsa içerik tipi
+panelde açılmamış demektir; `403` ise abonelik/modül kapalıdır.
+
 ## 2026-08-22 — Her sayfa ve servis submitcms üzerinden
 
 | Ekran / Servis | Arayüz Adresi | API Endpoint(ler) | Not |

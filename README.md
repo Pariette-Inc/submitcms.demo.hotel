@@ -29,6 +29,7 @@ npm run dev
 | `GET /api/takvim` | Oda müsaitlik takvimi (en çok 120 gün) |
 | `POST /api/iletisim` | İletişim mesajı — ticket hattı |
 | `POST /api/goruntuleme` | Görüntülenme bildirimi (`sendBeacon`) |
+| `POST /api/yenile` | İçerik önbelleğini düşürür (sır ister) |
 | `GET /api/durum` | Kurulum teşhisi: token, içerik kaynağı, menü/galeri/banner, rezervasyon modülü |
 
 ## submitcms bağlantısı
@@ -160,6 +161,31 @@ gönderenin e-postası kimlik olarak kullanılır. İkisi env ile değiştirileb
 > duruyor ama uç `NotificationController@setTicketContent` — mevcut bir ticket'a mesaj
 > ekler ve `ticket` + `message` ister. SDK 1.0.1 bunu doğru belgeliyor.
 
+### Önbellek
+
+submitcms SDK'sı axios kullanıyor, `fetch` değil — yani Next'in fetch önbelleği
+bu çağrılara uygulanmaz, `revalidate` de yalnız statik sayfalara işler
+(`/rezervasyon` arama parametresi okuduğu için dinamiktir). İçerik okumaları bu
+yüzden `unstable_cache` ile **5 dakika** tutulur (`src/lib/cms/index.ts` →
+`CONTENT_TTL`).
+
+Başarısızlık da önbelleğe girer. Bilerek: uç bozukken her istek yeniden denese
+hem submitcms'e hem bildirim kanalına gürültü olur — "sayfa sürekli çalışıyor"
+şikâyetinin kaynağı buydu.
+
+**Müsaitlik ve takvim önbelleğe alınmaz**; rezervasyon bilgisi bayat
+gösterilemez.
+
+Panelde yapılan bir değişikliği beklemeden görmek için:
+
+```bash
+curl -X POST -H "x-revalidate-secret: $SUBMITCMS_REVALIDATE_SECRET" \
+  https://<site>/api/yenile
+```
+
+Önbellek `.next/cache` içinde **dağıtımlar arası** kalıcıdır; yeniden derlemek
+bozuk bir girdiyi temizlemez.
+
 ### Demo modu
 
 `SUBMITCMS_TOKEN` boşken ya da servis yanıt vermezken **içerik** `src/data/fallback.ts`
@@ -189,6 +215,7 @@ Yanıtta üç başlık işe yarar:
 | `SUBMITCMS_MODE` | `production` (varsayılan) veya `test` |
 | `SUBMITCMS_API_URL` | Self-hosted/yerel API kökü — verilirse `MODE` yok sayılır |
 | `SUBMITCMS_MEDIA_HOST` | Medya kendi alan adındaysa `next/image` için host |
+| `SUBMITCMS_REVALIDATE_SECRET` | `POST /api/yenile` için paylaşılan sır. Boşsa uç kapalı. |
 | `SISTEMTAKIP_API_KEY` | Olay bildirimi (`wh_in_…` incoming webhook anahtarı). Yoksa olaylar sunucu log'una yazılır. |
 | `NEXT_PUBLIC_SITE_URL` | Kanonik adres — metadata ve `sitemap.xml` |
 | `SUBMITCMS_TICKET_TYPE` | Talep türü kodu (varsayılan `iletisim`) |

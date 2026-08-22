@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { SubmitError, type TicketPayload } from "submitcms";
 import {
@@ -35,9 +36,46 @@ export { isCmsConfigured };
 
 const PER_PAGE = 50;
 
-export const getRooms = cache(async (): Promise<Room[]> => {
+/**
+ * İçerik önbelleği (saniye).
+ *
+ * SDK **axios** kullanıyor, `fetch` değil — yani Next'in fetch önbelleği bu
+ * çağrılara hiç uygulanmaz. `react.cache` de yalnızca tek bir istek içinde
+ * tekrarı önler. Bu ikisi olmadan `/rezervasyon` gibi dinamik sayfalar (arama
+ * parametresi okudukları için `revalidate` onlara işlemez) her ziyarette
+ * submitcms'e yeniden gider; uç bozuksa her ziyaret bir hata daha üretir.
+ *
+ * `unstable_cache` istekler arasında tutar. Next 16 bunun yerine `use cache`
+ * öneriyor ama o `cacheComponents` bayrağını ve tüm dinamik API'lerin Suspense
+ * altına alınmasını istiyor — ayrı bir taşıma işi.
+ */
+const CONTENT_TTL = 300;
+
+/** Tek çağrıyla tüm içerik önbelleğini düşürmek için: `revalidateTag(CACHE_TAG)`. */
+export const CACHE_TAG = "submitcms";
+
+/**
+ * Bir okuma çağrısını istekler arasında önbelleğe alır.
+ *
+ * Hata da önbelleğe girer (`null` olarak): amaç budur. Bozuk bir uç önbelleğe
+ * girmezse her istek yeniden denenir ve her istek yeni bir bildirim üretir —
+ * şikâyet konusu olan "sürekli çalışıyor" davranışı tam olarak budur. Böylece
+ * arıza sürerken submitcms'e TTL başına bir istek gider, uç düzeldiğinde
+ * içerik en geç TTL kadar sonra kendiliğinden döner.
+ */
+function cached<A extends unknown[], T>(
+  key: string,
+  run: (...args: A) => Promise<T | null>,
+): (...args: A) => Promise<T | null> {
+  return unstable_cache(run, ["submitcms", key], {
+    revalidate: CONTENT_TTL,
+    tags: [CACHE_TAG],
+  });
+}
+
+const loadRooms = cached("oda:list", async (): Promise<Room[] | null> => {
   const sdk = getCms();
-  if (!sdk) return fallbackRooms;
+  if (!sdk) return null;
 
   try {
     const response = await sdk.delivery.records(CONTENT_TYPES.room, {
@@ -45,34 +83,47 @@ export const getRooms = cache(async (): Promise<Room[]> => {
       locale: "tr",
     });
     const records = response.data ?? [];
-    return records.length ? records.map(toRoom) : fallbackRooms;
+    return records.length ? records.map(toRoom) : null;
   } catch (err) {
     reportCmsError("odalar listelenemedi", err);
-    return fallbackRooms;
+    return null;
   }
 });
 
-export const getRoom = cache(async (slug: string): Promise<Room | null> => {
-  const sdk = getCms();
+export const getRooms = cache(
+  async (): Promise<Room[]> => (await loadRooms()) ?? fallbackRooms,
+);
 
-  if (sdk) {
+const loadRoom = cached(
+  "oda:item",
+  async (slug: string): Promise<Room | null> => {
+    const sdk = getCms();
+    if (!sdk) return null;
+
     try {
       const response = await sdk.delivery.record(CONTENT_TYPES.room, slug, {
         locale: "tr",
       });
-      if (response.data) return toRoom(response.data);
+      return response.data ? toRoom(response.data) : null;
     } catch (err) {
       reportCmsError(`oda alınamadı: ${slug}`, err);
+      return null;
     }
-  }
+  },
+);
 
+export const getRoom = cache(async (slug: string): Promise<Room | null> => {
+  const room = await loadRoom(slug);
+  if (room) return room;
+
+  // Tekil uç yoksa/boşsa listeden ara — demo modunda tek yol budur.
   const rooms = await getRooms();
-  return rooms.find((room) => room.slug === slug) ?? null;
+  return rooms.find((item) => item.slug === slug) ?? null;
 });
 
-export const getServices = cache(async (): Promise<Service[]> => {
+const loadServices = cached("hizmet:list", async (): Promise<Service[] | null> => {
   const sdk = getCms();
-  if (!sdk) return fallbackServices;
+  if (!sdk) return null;
 
   try {
     const response = await sdk.delivery.records(CONTENT_TYPES.service, {
@@ -80,29 +131,41 @@ export const getServices = cache(async (): Promise<Service[]> => {
       locale: "tr",
     });
     const records = response.data ?? [];
-    return records.length ? records.map(toService) : fallbackServices;
+    return records.length ? records.map(toService) : null;
   } catch (err) {
     reportCmsError("hizmetler listelenemedi", err);
-    return fallbackServices;
+    return null;
   }
 });
 
-export const getService = cache(async (slug: string): Promise<Service | null> => {
-  const sdk = getCms();
+export const getServices = cache(
+  async (): Promise<Service[]> => (await loadServices()) ?? fallbackServices,
+);
 
-  if (sdk) {
+const loadService = cached(
+  "hizmet:item",
+  async (slug: string): Promise<Service | null> => {
+    const sdk = getCms();
+    if (!sdk) return null;
+
     try {
       const response = await sdk.delivery.record(CONTENT_TYPES.service, slug, {
         locale: "tr",
       });
-      if (response.data) return toService(response.data);
+      return response.data ? toService(response.data) : null;
     } catch (err) {
       reportCmsError(`hizmet alınamadı: ${slug}`, err);
+      return null;
     }
-  }
+  },
+);
+
+export const getService = cache(async (slug: string): Promise<Service | null> => {
+  const service = await loadService(slug);
+  if (service) return service;
 
   const services = await getServices();
-  return services.find((service) => service.slug === slug) ?? null;
+  return services.find((item) => item.slug === slug) ?? null;
 });
 
 /**
@@ -114,15 +177,17 @@ export const getService = cache(async (slug: string): Promise<Service | null> =>
  *
  * İkincisi birincinin üstüne yazar; ikisi de yoksa demo içerik kullanılır.
  */
-export const getSiteInfo = cache(async (): Promise<SiteInfo> => {
+const loadSiteInfo = cached("site", async (): Promise<SiteInfo | null> => {
   const sdk = getCms();
-  if (!sdk) return fallbackSite;
+  if (!sdk) return null;
 
   let base = fallbackSite;
+  let touched = false;
 
   try {
     const response = await sdk.delivery.init();
     base = toSiteInfo(response.data);
+    touched = true;
   } catch (err) {
     reportCmsError("site bilgisi alınamadı", err);
   }
@@ -133,20 +198,26 @@ export const getSiteInfo = cache(async (): Promise<SiteInfo> => {
       SITE_RECORD_SLUG,
       { locale: "tr" },
     );
-    return toSiteRecord(response.data, base);
+    if (response.data) return toSiteRecord(response.data, base);
   } catch (err) {
-    // `site` tipi açılmamışsa 404 normaldir.
-    if (!(err instanceof SubmitError && err.code === 404)) {
-      reportCmsError("site kaydı alınamadı", err);
-    }
-    return base;
+    // `site` tipi açılmamışsa 404 normaldir; reportCmsError bunu bildirime
+    // çevirmez, yalnız log'a yazar.
+    reportCmsError("site kaydı alınamadı", err);
   }
+
+  return touched ? base : null;
 });
+
+export const getSiteInfo = cache(
+  async (): Promise<SiteInfo> => (await loadSiteInfo()) ?? fallbackSite,
+);
 
 /**
  * Ziyaretçi formlarını submitcms'e iletir (`delivery.submitTicket` →
  * `POST /api/public/ticket-submit`).
  * Bu uç site token'ıyla çalışır, oturum istemez.
+ *
+ * Önbelleğe ALINMAZ: yazma tarafıdır.
  *
  * Dönen `false` "kaydedilemedi" demektir; çağıran uç 502 döner.
  * submitcms yapılandırılmamışsa `null` döner — demo modu.
@@ -188,96 +259,110 @@ export async function submitTicket(
  * Panelde tanımlı menü (`delivery.menu(code)`). Menü yoksa 404 döner; o durumda
  * çağıran koddaki varsayılan gezinmeye düşer.
  */
-export const getNavigation = cache(
-  async (code: string): Promise<NavItem[]> => {
+const loadNavigation = cached(
+  "menu",
+  async (code: string): Promise<NavItem[] | null> => {
     const sdk = getCms();
-    if (!sdk) return [];
+    if (!sdk) return null;
 
     try {
       const response = await sdk.delivery.menu(code);
-      return toNavItems(response.data);
+      const items = toNavItems(response.data);
+      return items.length ? items : null;
     } catch (err) {
-      // Menü açılmamışsa 404 normaldir — gürültü yapma, sessizce boş dön.
-      if (err instanceof SubmitError && err.code === 404) return [];
+      // Menü açılmamışsa 404 normaldir; bildirim gitmez.
       reportCmsError(`menü alınamadı: ${code}`, err);
-      return [];
+      return null;
     }
   },
 );
 
-export const getBanners = cache(async (): Promise<Banner[]> => {
-  const sdk = getCms();
-  if (!sdk) return [];
-
-  try {
-    const response = await sdk.delivery.banners();
-    return toBanners(response.data);
-  } catch (err) {
-    if (err instanceof SubmitError && err.code === 404) return [];
-    reportCmsError("bannerlar alınamadı", err);
-    return [];
-  }
-});
-
-/** Galeri şeridi. Panelde galeri yoksa demo kareleri kullanılır. */
-export const getGallery = cache(
-  async (slug: string): Promise<GalleryImage[]> => {
-    const sdk = getCms();
-    const fallback = fallbackGallery.map((src) => ({ src, alt: "" }));
-    if (!sdk) return fallback;
-
-    try {
-      const response = await sdk.delivery.gallery(slug);
-      const images = toGalleryImages(response.data);
-      return images.length ? images : fallback;
-    } catch (err) {
-      if (!(err instanceof SubmitError && err.code === 404)) {
-        reportCmsError(`galeri alınamadı: ${slug}`, err);
-      }
-      return fallback;
-    }
-  },
+/**
+ * Panelde tanımlı menü (`delivery.menu(code)`). Menü yoksa boş liste döner ve
+ * çağıran koddaki varsayılan gezinmeye düşer.
+ */
+export const getNavigation = cache(
+  async (code: string): Promise<NavItem[]> => (await loadNavigation(code)) ?? [],
 );
 
-// ── İlgili içerik ───────────────────────────────────────────────────────────
-
-/** "Bunlar da ilginizi çekebilir" — `delivery.alsoRead()`. */
-export const getRelatedRooms = cache(
-  async (slug: string): Promise<Room[]> => {
-    const records = await alsoRead(CONTENT_TYPES.room, slug);
-    if (records) return records.map(toRoom);
-
-    // CMS yoksa/boşsa: aynı listeden kendisi dışındakiler.
-    const rooms = await getRooms();
-    return rooms.filter((room) => room.slug !== slug).slice(0, 3);
-  },
-);
-
-export const getRelatedServices = cache(
-  async (slug: string): Promise<Service[]> => {
-    const records = await alsoRead(CONTENT_TYPES.service, slug);
-    if (records) return records.map(toService);
-
-    const services = await getServices();
-    return services.filter((service) => service.slug !== slug).slice(0, 3);
-  },
-);
-
-async function alsoRead(typeCode: string, slug: string) {
+const loadBanners = cached("banners", async (): Promise<Banner[] | null> => {
   const sdk = getCms();
   if (!sdk) return null;
 
   try {
-    const response = await sdk.delivery.alsoRead(typeCode, slug);
-    const records = response.data ?? [];
-    return records.length ? records : null;
+    const response = await sdk.delivery.banners();
+    const banners = toBanners(response.data);
+    return banners.length ? banners : null;
   } catch (err) {
-    if (!(err instanceof SubmitError && err.code === 404)) {
-      reportCmsError(`ilgili içerik alınamadı: ${typeCode}/${slug}`, err);
-    }
+    reportCmsError("bannerlar alınamadı", err);
     return null;
   }
-}
+});
+
+export const getBanners = cache(
+  async (): Promise<Banner[]> => (await loadBanners()) ?? [],
+);
+
+const loadGallery = cached(
+  "gallery",
+  async (slug: string): Promise<GalleryImage[] | null> => {
+    const sdk = getCms();
+    if (!sdk) return null;
+
+    try {
+      const response = await sdk.delivery.gallery(slug);
+      const images = toGalleryImages(response.data);
+      return images.length ? images : null;
+    } catch (err) {
+      reportCmsError(`galeri alınamadı: ${slug}`, err);
+      return null;
+    }
+  },
+);
+
+/** Galeri şeridi. Panelde galeri yoksa demo kareleri kullanılır. */
+export const getGallery = cache(async (slug: string): Promise<GalleryImage[]> => {
+  const images = await loadGallery(slug);
+  return images ?? fallbackGallery.map((src) => ({ src, alt: "" }));
+});
+
+// ── İlgili içerik ───────────────────────────────────────────────────────────
+
+/** "Bunlar da ilginizi çekebilir" — `delivery.alsoRead()`. */
+const loadAlsoRead = cached(
+  "also-read",
+  async (typeCode: string, slug: string) => {
+    const sdk = getCms();
+    if (!sdk) return null;
+
+    try {
+      const response = await sdk.delivery.alsoRead(typeCode, slug);
+      const records = response.data ?? [];
+      return records.length ? records : null;
+    } catch (err) {
+      reportCmsError(`ilgili içerik alınamadı: ${typeCode}/${slug}`, err);
+      return null;
+    }
+  },
+);
+
+/** "Bunlar da ilginizi çekebilir" — `delivery.alsoRead()`. */
+export const getRelatedRooms = cache(async (slug: string): Promise<Room[]> => {
+  const records = await loadAlsoRead(CONTENT_TYPES.room, slug);
+  if (records) return records.map(toRoom);
+
+  // Uç yoksa/boşsa: aynı listeden kendisi dışındakiler.
+  const rooms = await getRooms();
+  return rooms.filter((room) => room.slug !== slug).slice(0, 3);
+});
+
+export const getRelatedServices = cache(async (slug: string): Promise<Service[]> => {
+  const records = await loadAlsoRead(CONTENT_TYPES.service, slug);
+  if (records) return records.map(toService);
+
+  const services = await getServices();
+  return services.filter((service) => service.slug !== slug).slice(0, 3);
+});
 
 // ── Görüntülenme ────────────────────────────────────────────────────────────
 
